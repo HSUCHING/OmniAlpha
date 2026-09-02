@@ -1,268 +1,552 @@
-# Machine-readable scenario matrix.
-# Markets: CN / US / CRYPTO / POLY
-# Capabilities: watch / query / screen / analyze
-# Verdict rules (Eval.md): 未实现 → SKIP/N/A-phase1，不得判 FAIL；宣称实现则必过。
+# Auto-synced post-88e6043 expects (matrix runner). Comments in baseline_pre_refactor_scenarios.yaml.
 version: 2
 phase_current: 1
 base_local: http://127.0.0.1:8700
 base_public: https://api.metacognix.xyz
 auth_header: X-API-Key
-
-# Representative symbols per market (seed / smoke)
 symbols:
   CN: CN:600519
   US: US:AAPL
   CRYPTO: CRYPTO:BTCUSDT
-  POLY: POLY:DUMMY  # no seed in phase-1
-
-# ─── Matrix cells: market × capability ───────────────────────────────────────
+  POLY: POLY:DUMMY
 matrix:
-  - id: M-CN-watch
-    market: CN
-    capability: watch
-    phase: 1
-    invoke: [http, mcp]
-    http: { method: GET, path: /v1/quotes, query: { symbols: "CN:600519" } }
-    mcp: { tool: get_quotes, args: { symbols: "CN:600519" } }
-    expect:
-      http_status: 200
-      min_items: 1
-      fields: [symbol, last, as_of, source, stale]
-      http_mcp_parity: true
-
-  - id: M-CN-query
-    market: CN
-    capability: query
-    phase: 1
-    invoke: [http, mcp]
-    http: { method: GET, path: /v1/instruments, query: { market: "CN", limit: "5" } }
-    mcp: { tool: search_instruments, args: { q: "茅台", market: "CN", limit: 5 } }
-    expect: { http_status: 200, min_items: 1 }
-
-  - id: M-CN-query-bars
-    market: CN
-    capability: query
-    phase: 1
-    invoke: [http, mcp]
-    http: { method: GET, path: /v1/bars, query: { symbol: "CN:600519", interval: "1d", limit: "5" } }
-    mcp: { tool: get_bars, args: { symbol: "CN:600519", interval: "1d", limit: 5 } }
-    expect: { http_status: 200, min_items: 1, http_mcp_parity: true }
-
-  - id: M-CN-screen
-    market: CN
-    capability: screen
-    phase: 1
-    invoke: [http]
-    http: { method: GET, path: /v1/screener/run, query: { market: "CN" } }
-    expect: { http_status_in: [404, 501, 422], skip_if_unimplemented: true }
-    note: N/A-phase1 screener stub
-
-  - id: M-CN-analyze
-    market: CN
-    capability: analyze
-    phase: 1
-    invoke: [http]
-    http: { method: GET, path: /v1/analytics/indicators, query: { symbol: "CN:600519" } }
-    expect: { http_status_in: [404, 501, 422], skip_if_unimplemented: true }
-    note: N/A-phase1 analytics stub
-
-  - id: M-US-watch
-    market: US
-    capability: watch
-    phase: 1
-    invoke: [http, mcp]
-    http: { method: GET, path: /v1/quotes, query: { symbols: "US:AAPL" } }
-    mcp: { tool: get_quotes, args: { symbols: "US:AAPL" } }
-    expect:
-      http_status: 200
-      skip_if_warning_contains: "not implemented"
-      http_mcp_parity: true
-
-  - id: M-US-query
-    market: US
-    capability: query
-    phase: 1
-    invoke: [http, mcp]
-    http: { method: GET, path: /v1/instruments, query: { market: "US", limit: "5" } }
-    mcp: { tool: search_instruments, args: { q: "Apple", market: "US", limit: 5 } }
-    expect: { http_status: 200, min_items: 1 }
-
-  - id: M-US-screen
-    market: US
-    capability: screen
-    phase: 1
-    invoke: [http]
-    http: { method: GET, path: /v1/screener/run, query: { market: "US" } }
-    expect: { http_status_in: [404, 501, 422], skip_if_unimplemented: true }
-
-  - id: M-US-analyze
-    market: US
-    capability: analyze
-    phase: 1
-    invoke: [http]
-    http: { method: GET, path: /v1/analytics/indicators, query: { symbol: "US:AAPL" } }
-    expect: { http_status_in: [404, 501, 422], skip_if_unimplemented: true }
-
-  - id: M-CRYPTO-watch
-    market: CRYPTO
-    capability: watch
-    phase: 1
-    invoke: [http, mcp]
-    http: { method: GET, path: /v1/quotes, query: { symbols: "CRYPTO:BTCUSDT" } }
-    mcp: { tool: get_quotes, args: { symbols: "CRYPTO:BTCUSDT" } }
-    expect:
-      http_status: 200
-      skip_if_warning_contains: "not implemented"
-      http_mcp_parity: true
-
-  - id: M-CRYPTO-query
-    market: CRYPTO
-    capability: query
-    phase: 1
-    invoke: [http, mcp]
-    http: { method: GET, path: /v1/instruments, query: { market: "CRYPTO", limit: "5" } }
-    mcp: { tool: search_instruments, args: { q: "Bitcoin", market: "CRYPTO", limit: 5 } }
-    expect: { http_status: 200, min_items: 1 }
-
-  - id: M-CRYPTO-screen
-    market: CRYPTO
-    capability: screen
-    phase: 1
-    invoke: [http]
-    http: { method: GET, path: /v1/screener/run, query: { market: "CRYPTO" } }
-    expect: { http_status_in: [404, 501, 422], skip_if_unimplemented: true }
-
-  - id: M-CRYPTO-analyze
-    market: CRYPTO
-    capability: analyze
-    phase: 1
-    invoke: [http]
-    http: { method: GET, path: /v1/analytics/indicators, query: { symbol: "CRYPTO:BTCUSDT" } }
-    expect: { http_status_in: [404, 501, 422], skip_if_unimplemented: true }
-
-  - id: M-POLY-watch
-    market: POLY
-    capability: watch
-    phase: 1
-    invoke: [http, mcp]
-    http: { method: GET, path: /v1/quotes, query: { symbols: "POLY:DUMMY" } }
-    mcp: { tool: get_quotes, args: { symbols: "POLY:DUMMY" } }
-    expect:
-      http_status: 200
-      skip_if_warning_contains: "not implemented"
-      http_mcp_parity: true
-
-  - id: M-POLY-query
-    market: POLY
-    capability: query
-    phase: 1
-    invoke: [http]
-    soft: true
-    http: { method: GET, path: /v1/instruments, query: { market: "POLY", limit: "5" } }
-    expect:
-      http_status: 200
-      skip_if_empty: true
-
-  - id: M-POLY-screen
-    market: POLY
-    capability: screen
-    phase: 1
-    invoke: [http]
-    http: { method: GET, path: /v1/screener/run, query: { market: "POLY" } }
-    expect: { http_status_in: [404, 501, 422], skip_if_unimplemented: true }
-
-  - id: M-POLY-analyze
-    market: POLY
-    capability: analyze
-    phase: 1
-    invoke: [http]
-    http: { method: GET, path: /v1/analytics/indicators, query: { symbol: "POLY:DUMMY" } }
-    expect: { http_status_in: [404, 501, 422], skip_if_unimplemented: true }
-
-# ─── Legacy phase1 gate scenarios (S1–S8) ────────────────────────────────────
+- id: M-CN-watch
+  market: CN
+  capability: watch
+  phase: 1
+  invoke:
+  - http
+  - mcp
+  http:
+    method: GET
+    path: /v1/quotes
+    query:
+      symbols: CN:600519
+  mcp:
+    tool: get_quotes
+    args:
+      symbols: CN:600519
+  expect:
+    http_status: 200
+    min_items: 1
+    fields:
+    - symbol
+    - last
+    - as_of
+    - source
+    - stale
+    http_mcp_parity: true
+- id: M-CN-query
+  market: CN
+  capability: query
+  phase: 1
+  invoke:
+  - http
+  - mcp
+  http:
+    method: GET
+    path: /v1/instruments
+    query:
+      market: CN
+      limit: '5'
+  mcp:
+    tool: search_instruments
+    args:
+      q: 茅台
+      market: CN
+      limit: 5
+  expect:
+    http_status: 200
+    min_items: 1
+- id: M-CN-query-bars
+  market: CN
+  capability: query
+  phase: 1
+  invoke:
+  - http
+  - mcp
+  http:
+    method: GET
+    path: /v1/bars
+    query:
+      symbol: CN:600519
+      interval: 1d
+      limit: '5'
+  mcp:
+    tool: get_bars
+    args:
+      symbol: CN:600519
+      interval: 1d
+      limit: 5
+  expect:
+    http_status: 200
+    min_items: 1
+    http_mcp_parity: true
+- id: M-CN-screen
+  market: CN
+  capability: screen
+  phase: 1
+  invoke:
+  - http
+  http:
+    method: GET
+    path: /v1/screener/run
+    query:
+      market: CN
+  expect:
+    http_status_in:
+    - 501
+    - 404
+    - 422
+    skip_if_unimplemented: true
+  note: N/A-phase1 screener stub
+- id: M-CN-analyze
+  market: CN
+  capability: analyze
+  phase: 1
+  invoke:
+  - http
+  http:
+    method: GET
+    path: /v1/analytics/indicators
+    query:
+      symbol: CN:600519
+  expect:
+    http_status_in:
+    - 501
+    - 404
+    - 422
+    skip_if_unimplemented: true
+  note: N/A-phase1 analytics stub
+- id: M-US-watch
+  market: US
+  capability: watch
+  phase: 1
+  invoke:
+  - http
+  - mcp
+  http:
+    method: GET
+    path: /v1/quotes
+    query:
+      symbols: US:AAPL
+  mcp:
+    tool: get_quotes
+    args:
+      symbols: US:AAPL
+  expect:
+    http_status: 200
+    min_items: 1
+    fields:
+    - symbol
+    - last
+    - as_of
+    - source
+    - stale
+    http_mcp_parity: true
+- id: M-US-query
+  market: US
+  capability: query
+  phase: 1
+  invoke:
+  - http
+  - mcp
+  http:
+    method: GET
+    path: /v1/instruments
+    query:
+      market: US
+      limit: '5'
+  mcp:
+    tool: search_instruments
+    args:
+      q: Apple
+      market: US
+      limit: 5
+  expect:
+    http_status: 200
+    min_items: 1
+- id: M-US-screen
+  market: US
+  capability: screen
+  phase: 1
+  invoke:
+  - http
+  http:
+    method: GET
+    path: /v1/screener/run
+    query:
+      market: US
+  expect:
+    http_status_in:
+    - 501
+    - 404
+    - 422
+    skip_if_unimplemented: true
+- id: M-US-analyze
+  market: US
+  capability: analyze
+  phase: 1
+  invoke:
+  - http
+  http:
+    method: GET
+    path: /v1/analytics/indicators
+    query:
+      symbol: US:AAPL
+  expect:
+    http_status_in:
+    - 501
+    - 404
+    - 422
+    skip_if_unimplemented: true
+- id: M-CRYPTO-watch
+  market: CRYPTO
+  capability: watch
+  phase: 1
+  invoke:
+  - http
+  - mcp
+  http:
+    method: GET
+    path: /v1/quotes
+    query:
+      symbols: CRYPTO:BTCUSDT
+  mcp:
+    tool: get_quotes
+    args:
+      symbols: CRYPTO:BTCUSDT
+  expect:
+    http_status: 200
+    min_items: 1
+    fields:
+    - symbol
+    - last
+    - as_of
+    - source
+    - stale
+    http_mcp_parity: true
+- id: M-CRYPTO-query
+  market: CRYPTO
+  capability: query
+  phase: 1
+  invoke:
+  - http
+  - mcp
+  http:
+    method: GET
+    path: /v1/instruments
+    query:
+      market: CRYPTO
+      limit: '5'
+  mcp:
+    tool: search_instruments
+    args:
+      q: Bitcoin
+      market: CRYPTO
+      limit: 5
+  expect:
+    http_status: 200
+    min_items: 1
+- id: M-CRYPTO-screen
+  market: CRYPTO
+  capability: screen
+  phase: 1
+  invoke:
+  - http
+  http:
+    method: GET
+    path: /v1/screener/run
+    query:
+      market: CRYPTO
+  expect:
+    http_status_in:
+    - 501
+    - 404
+    - 422
+    skip_if_unimplemented: true
+- id: M-CRYPTO-analyze
+  market: CRYPTO
+  capability: analyze
+  phase: 1
+  invoke:
+  - http
+  http:
+    method: GET
+    path: /v1/analytics/indicators
+    query:
+      symbol: CRYPTO:BTCUSDT
+  expect:
+    http_status_in:
+    - 501
+    - 404
+    - 422
+    skip_if_unimplemented: true
+- id: M-POLY-watch
+  market: POLY
+  capability: watch
+  phase: 1
+  invoke:
+  - http
+  - mcp
+  http:
+    method: GET
+    path: /v1/quotes
+    query:
+      symbols: POLY:DUMMY
+  mcp:
+    tool: get_quotes
+    args:
+      symbols: POLY:DUMMY
+  expect:
+    http_status: 200
+    skip_if_warning_contains: unsupported
+    http_mcp_parity: true
+- id: M-POLY-query
+  market: POLY
+  capability: query
+  phase: 1
+  invoke:
+  - http
+  soft: true
+  http:
+    method: GET
+    path: /v1/instruments
+    query:
+      market: POLY
+      limit: '5'
+  expect:
+    http_status: 200
+    skip_if_empty: true
+- id: M-POLY-screen
+  market: POLY
+  capability: screen
+  phase: 1
+  invoke:
+  - http
+  http:
+    method: GET
+    path: /v1/screener/run
+    query:
+      market: POLY
+  expect:
+    http_status_in:
+    - 501
+    - 404
+    - 422
+    skip_if_unimplemented: true
+- id: M-POLY-analyze
+  market: POLY
+  capability: analyze
+  phase: 1
+  invoke:
+  - http
+  http:
+    method: GET
+    path: /v1/analytics/indicators
+    query:
+      symbol: POLY:DUMMY
+  expect:
+    http_status_in:
+    - 501
+    - 404
+    - 422
+    skip_if_unimplemented: true
+- id: M-POLY-prediction
+  market: POLY
+  capability: analyze
+  phase: 1
+  invoke:
+  - http
+  http:
+    method: GET
+    path: /v1/prediction/markets
+  expect:
+    http_status_in:
+    - 501
+    skip_if_unimplemented: true
+  note: N/A-phase1 prediction → 501
 scenarios:
-  - id: S1
-    name: search instruments
-    capability: query
-    market: CN
-    invoke: [http, mcp]
-    http: { method: GET, path: /v1/instruments, query: { q: "茅台" } }
-    mcp: { tool: search_instruments, args: { q: "茅台" } }
-    expect: { http_status: 200, min_items: 1 }
-    phase: 1
-  - id: S2
-    name: get quote
-    capability: watch
-    market: CN
-    invoke: [http, mcp]
-    http: { method: GET, path: /v1/quotes, query: { symbols: "CN:600519" } }
-    mcp: { tool: get_quotes, args: { symbols: "CN:600519" } }
-    expect: { http_status: 200, fields: [symbol, last, as_of, source, stale], http_mcp_parity: true }
-    phase: 1
-  - id: S3
-    name: get bars 1d
-    capability: query
-    market: CN
-    invoke: [http, mcp]
-    http: { method: GET, path: /v1/bars, query: { symbol: "CN:600519", interval: "1d", limit: "5" } }
-    mcp: { tool: get_bars, args: { symbol: "CN:600519", interval: "1d", limit: 5 } }
-    expect: { http_status: 200, min_items: 1, http_mcp_parity: true }
-    phase: 1
-  - id: S4
-    name: multi-symbol quotes
-    capability: watch
-    market: CN
-    invoke: [http, mcp]
-    http: { method: GET, path: /v1/quotes, query: { symbols: "CN:600519,CN:000001" } }
-    mcp: { tool: get_quotes, args: { symbols: "CN:600519,CN:000001" } }
-    expect: { http_status: 200, min_items: 1 }
-    phase: 1
-  - id: S5
-    name: cross-market seed
-    capability: query
-    market: US
-    invoke: [http]
-    http: { method: GET, path: /v1/instruments, query: { market: "US" } }
-    expect: { http_status: 200 }
-    phase: 1
-    soft: true
-  - id: S6
-    name: invalid prefix
-    capability: protocol
-    invoke: [http]
-    http: { method: GET, path: /v1/quotes, query: { symbols: "FOO:1" } }
-    expect: { http_status: 422 }
-    phase: 1
-  - id: S7
-    name: missing api key
-    capability: auth
-    invoke: [http]
-    http: { method: GET, path: /v1/instruments, headers: {} }
-    expect: { http_status: 401 }
-    phase: 1
-  - id: S8
-    name: unimplemented analytics not 500
-    capability: analyze
-    invoke: [http]
-    http: { method: GET, path: /v1/analytics/indicators }
-    expect: { http_status_in: [404, 501, 422] }
-    phase: 1
-  - id: S9
-    name: stale flag
-    capability: watch
-    phase: 2
-  - id: S14
-    name: mcp auth parity
-    capability: auth
-    phase: 2
-
-# Ops probes (not matrix cells)
+- id: S1
+  name: search instruments
+  capability: query
+  market: CN
+  invoke:
+  - http
+  - mcp
+  http:
+    method: GET
+    path: /v1/instruments
+    query:
+      q: 茅台
+  mcp:
+    tool: search_instruments
+    args:
+      q: 茅台
+  expect:
+    http_status: 200
+    min_items: 1
+  phase: 1
+- id: S2
+  name: get quote
+  capability: watch
+  market: CN
+  invoke:
+  - http
+  - mcp
+  http:
+    method: GET
+    path: /v1/quotes
+    query:
+      symbols: CN:600519
+  mcp:
+    tool: get_quotes
+    args:
+      symbols: CN:600519
+  expect:
+    http_status: 200
+    fields:
+    - symbol
+    - last
+    - as_of
+    - source
+    - stale
+    http_mcp_parity: true
+  phase: 1
+- id: S3
+  name: get bars 1d
+  capability: query
+  market: CN
+  invoke:
+  - http
+  - mcp
+  http:
+    method: GET
+    path: /v1/bars
+    query:
+      symbol: CN:600519
+      interval: 1d
+      limit: '5'
+  mcp:
+    tool: get_bars
+    args:
+      symbol: CN:600519
+      interval: 1d
+      limit: 5
+  expect:
+    http_status: 200
+    min_items: 1
+    http_mcp_parity: true
+  phase: 1
+- id: S4
+  name: multi-symbol quotes
+  capability: watch
+  market: CN
+  invoke:
+  - http
+  - mcp
+  http:
+    method: GET
+    path: /v1/quotes
+    query:
+      symbols: CN:600519,CN:000001
+  mcp:
+    tool: get_quotes
+    args:
+      symbols: CN:600519,CN:000001
+  expect:
+    http_status: 200
+    min_items: 1
+  phase: 1
+- id: S5
+  name: cross-market seed
+  capability: query
+  market: US
+  invoke:
+  - http
+  http:
+    method: GET
+    path: /v1/instruments
+    query:
+      market: US
+  expect:
+    http_status: 200
+  phase: 1
+  soft: true
+- id: S6
+  name: invalid prefix
+  capability: protocol
+  invoke:
+  - http
+  http:
+    method: GET
+    path: /v1/quotes
+    query:
+      symbols: FOO:1
+  expect:
+    http_status: 422
+  phase: 1
+- id: S7
+  name: missing api key
+  capability: auth
+  invoke:
+  - http
+  http:
+    method: GET
+    path: /v1/instruments
+    headers: {}
+  expect:
+    http_status: 401
+  phase: 1
+- id: S8
+  name: unimplemented analytics not 500
+  capability: analyze
+  invoke:
+  - http
+  http:
+    method: GET
+    path: /v1/analytics/indicators
+  expect:
+    http_status_in:
+    - 501
+    - 404
+    - 422
+  phase: 1
+- id: S9
+  name: stale flag
+  capability: watch
+  phase: 2
+- id: S14
+  name: mcp auth parity
+  capability: auth
+  phase: 2
 ops:
-  - id: G2-local-healthz
-    http: { method: GET, path: /healthz, auth: false }
-    expect: { http_status: 200 }
-  - id: G2b-public-healthz
-    base: public
-    soft: true
-    http: { method: GET, path: /healthz, auth: false }
-    expect: { http_status: 200 }
+- id: G2-local-healthz
+  http:
+    method: GET
+    path: /healthz
+    auth: false
+  expect:
+    http_status: 200
+- id: G2b-public-healthz
+  base: public
+  soft: true
+  http:
+    method: GET
+    path: /healthz
+    auth: false
+  expect:
+    http_status: 200
+- id: G2-ready
+  http:
+    method: GET
+    path: /health/ready
+    auth: false
+  expect:
+    http_status: 200
+- id: G2-capabilities
+  http:
+    method: GET
+    path: /v1/meta/capabilities
+  expect:
+    http_status: 200
