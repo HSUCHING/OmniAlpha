@@ -1,5 +1,5 @@
 {
-  "description": "统一错误体（目标契约）。phase1 未强制 HTTP 响应切换到此结构。",
+  "description": "Unified error body returned by facade exception handlers.",
   "properties": {
     "code": {
       "description": "Machine-readable error code",
@@ -8,7 +8,13 @@
         "unsupported",
         "stale",
         "invalid_id",
-        "rate_limited"
+        "rate_limited",
+        "unauthorized",
+        "validation_error",
+        "not_implemented",
+        "dependency_unavailable",
+        "upstream_error",
+        "internal_error"
       ],
       "title": "Code",
       "type": "string"
@@ -17,6 +23,17 @@
       "description": "Human-readable explanation",
       "title": "Message",
       "type": "string"
+    },
+    "detail": {
+      "anyOf": [
+        {},
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "description": "Optional structured detail",
+      "title": "Detail"
     },
     "market": {
       "anyOf": [
@@ -55,6 +72,6 @@
     "code",
     "message"
   ],
-  "title": "ApiError",
+  "title": "ErrorBody",
   "type": "object"
 }

@@ -2,7 +2,7 @@
 from __future__ import annotations
 
 from datetime import datetime, timezone
-from typing import Literal, Optional
+from typing import Any, Literal, Optional
 
 from pydantic import BaseModel, Field
 
@@ -118,29 +118,37 @@ class ReadyResponse(BaseModel):
 
 
 
-# --- Error (target / post-phase1) ---
-# Phase1 实装: HTTP 401/422/501 + FastAPI `detail` 字符串；尚无统一 Error body。
-# 目标字段见 eval/contracts_target.md；实现官对齐时可逐步替换 detail。
+# --- Error (F4) ---
+# Wired in apps/facade/main.py for 401/422/501/503 with `code` field.
 ErrorCode = Literal[
     "not_found",
     "unsupported",
     "stale",
     "invalid_id",
     "rate_limited",
+    "unauthorized",
+    "validation_error",
+    "not_implemented",
+    "dependency_unavailable",
+    "upstream_error",
+    "internal_error",
 ]
 
 
-class ApiError(BaseModel):
-    """统一错误体（目标契约）。phase1 未强制 HTTP 响应切换到此结构。"""
+class ErrorBody(BaseModel):
+    """Unified error body returned by facade exception handlers."""
 
     code: ErrorCode = Field(description="Machine-readable error code")
     message: str = Field(description="Human-readable explanation")
+    detail: Optional[Any] = Field(default=None, description="Optional structured detail")
     market: Optional[MarketPrefix] = Field(default=None, description="Optional market context")
     capability: Optional[str] = Field(
         default=None, description="Optional capability e.g. watch|query|analyze|screen|prediction"
     )
 
-# Backward-compatible alias
+
+# Backward-compatible aliases
+ApiError = ErrorBody
 ReadyCheck = ReadyResponse
 
 SERVICE_NAME = "omnialpha"
