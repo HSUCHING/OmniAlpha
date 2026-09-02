@@ -156,23 +156,6 @@ docker compose up -d scalar
 后续可并列挂载 MCP / GraphQL sibling 文档入口（同一契约，不另起 schema）。
 
 
-## Scalar API Reference（本地）
-
-```bash
-docker compose up -d scalar
-```
-
-| 项 | 值 |
-|---|---|
-| URL | `http://127.0.0.1:8701` |
-| OpenAPI | `http://127.0.0.1:8701/openapi.yaml`（只读挂载 `contracts/openapi.yaml`） |
-| Try-it 目标 | `http://127.0.0.1:8700` |
-| API Key | 请求头 `X-API-Key: dev-key` |
-
-**公网勿裸奔**：Scalar 仅供本地 / Compose；不要 Cloudflare Tunnel / 公网发布 `:8701`。
-
-后续可并列挂载 MCP / GraphQL sibling 文档入口（同一契约，不另起 schema）。
-
 ## Docker Compose
 
 根目录 `docker-compose.yml` 包含：
