@@ -8,6 +8,8 @@ info:
     Authenticated /v1 routes require header `X-API-Key` (default `dev-key`).
     Scalar UI (local): http://127.0.0.1:8701 — 公网勿裸奔.
 servers:
+  - url: https://api.metacognix.xyz
+    description: Public facade
   - url: http://127.0.0.1:8700
     description: Local facade (host network)
   - url: http://localhost:8700

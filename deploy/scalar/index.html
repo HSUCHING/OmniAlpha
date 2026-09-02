@@ -13,13 +13,13 @@
 </head>
 <body>
   <div class="oa-banner">
-    Try facade at <code>http://127.0.0.1:8700</code> with <code>X-API-Key: dev-key</code>
-    · <span class="oa-warn">公网勿裸奔 — Scalar local/compose only; do not tunnel/publish :8701</span>
+    Try facade at <code>https://api.metacognix.xyz</code> with <code>X-API-Key: dev-key</code>
+    · <span class="oa-warn">local fallback http://127.0.0.1:8700 · 正式请求必须带 API Key；CORS 仅允许 apidoc Origin</span>
   </div>
   <script
     id="api-reference"
     data-url="/openapi.yaml"
-    data-configuration='{"theme":"purple","servers":[{"url":"http://127.0.0.1:8700","description":"Local facade"}],"authentication":{"preferredSecurityScheme":"ApiKeyAuth","apiKey":{"token":"dev-key"}}}'
+    data-configuration='{"theme":"purple","servers":[{"url":"https://api.metacognix.xyz","description":"Public facade"},{"url":"http://127.0.0.1:8700","description":"Local facade"}],"authentication":{"preferredSecurityScheme":"ApiKeyAuth","apiKey":{"token":"dev-key"}}}'
   ></script>
   <script src="https://cdn.jsdelivr.net/npm/@scalar/api-reference"></script>
 </body>

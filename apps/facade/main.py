@@ -9,6 +9,7 @@ from contextlib import asynccontextmanager
 from typing import Optional
 
 from fastapi import Depends, FastAPI, Header, HTTPException, Query, Request, Response
+from fastapi.middleware.cors import CORSMiddleware
 from fastapi.exceptions import RequestValidationError
 from fastapi.responses import JSONResponse
 from starlette.exceptions import HTTPException as StarletteHTTPException
@@ -100,6 +101,21 @@ app = FastAPI(
     description="Unified multi-market data facade (CN/US/CRYPTO/POLY)",
     lifespan=_build_lifespan(),
 )
+
+# CORS for public Scalar apidoc only — exact origins, no wildcard reflection.
+# Authenticated requests still require X-API-Key; OPTIONS has no business body.
+_CORS_ORIGINS = [
+    "https://apidoc.metacognix.xyz",
+    "http://127.0.0.1:8701",
+]
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=_CORS_ORIGINS,
+    allow_credentials=False,
+    allow_methods=["GET", "OPTIONS"],
+    allow_headers=["X-API-Key", "Content-Type", "Accept"],
+)
+
 
 # ApiError codes locked to contract five: not_found|unsupported|stale|invalid_id|rate_limited
 _ID_HINTS = ("symbol", "prefix", "PREFIX:CODE", "market prefix", "empty code", "at least one symbol")
