@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 from datetime import datetime, timezone
+from enum import Enum
 from typing import Any, Literal, Optional
 
 from pydantic import BaseModel, Field
@@ -120,19 +121,20 @@ class ReadyResponse(BaseModel):
 
 # --- Error (F4) ---
 # Wired in apps/facade/main.py for 401/422/501/503 with `code` field.
-ErrorCode = Literal[
-    "not_found",
-    "unsupported",
-    "stale",
-    "invalid_id",
-    "rate_limited",
-    "unauthorized",
-    "validation_error",
-    "not_implemented",
-    "dependency_unavailable",
-    "upstream_error",
-    "internal_error",
-]
+class ErrorCode(str, Enum):
+    """Machine-readable error codes (contract semantic + HTTP wiring)."""
+
+    NOT_FOUND = "not_found"
+    UNSUPPORTED = "unsupported"
+    STALE = "stale"
+    INVALID_ID = "invalid_id"
+    RATE_LIMITED = "rate_limited"
+    UNAUTHORIZED = "unauthorized"
+    VALIDATION_ERROR = "validation_error"
+    NOT_IMPLEMENTED = "not_implemented"
+    DEPENDENCY_UNAVAILABLE = "dependency_unavailable"
+    UPSTREAM_ERROR = "upstream_error"
+    INTERNAL_ERROR = "internal_error"
 
 
 class ErrorBody(BaseModel):

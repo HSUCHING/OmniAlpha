@@ -1,8 +1,7 @@
 {
-  "description": "Unified error body returned by facade exception handlers.",
-  "properties": {
-    "code": {
-      "description": "Machine-readable error code",
+  "$defs": {
+    "ErrorCode": {
+      "description": "Machine-readable error codes (contract semantic + HTTP wiring).",
       "enum": [
         "not_found",
         "unsupported",
@@ -16,8 +15,15 @@
         "upstream_error",
         "internal_error"
       ],
-      "title": "Code",
+      "title": "ErrorCode",
       "type": "string"
+    }
+  },
+  "description": "Unified error body returned by facade exception handlers.",
+  "properties": {
+    "code": {
+      "$ref": "#/$defs/ErrorCode",
+      "description": "Machine-readable error code"
     },
     "message": {
       "description": "Human-readable explanation",
