@@ -191,34 +191,20 @@ components:
       name: X-API-Key
 
   schemas:
-    Error:
+    ApiError:
       type: object
+      description: |
+        Target unified error body (post-phase1). Phase1 responses still use HTTP status + detail.
+        phase1 gradually adopts ApiError for unsupported/invalid_id/not_found only.
       required: [code, message]
       properties:
         code:
           type: string
-          enum:
-            - validation_error
-            - unauthorized
-            - not_found
-            - not_implemented
-            - upstream_error
-            - dependency_unavailable
-            - internal_error
-            - unsupported
-            - stale
-            - invalid_id
-            - rate_limited
+          enum: [not_found, unsupported, stale, invalid_id, rate_limited]
         message:
           type: string
-        detail:
-          description: Optional structured context
         market:
           type: string
           enum: [CN, US, CRYPTO, POLY]
         capability:
           type: string
-    ErrorBody:
-      $ref: "#/components/schemas/Error"
-    ApiError:
-      $ref: "#/components/schemas/Error"
