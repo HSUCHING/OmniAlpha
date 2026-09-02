@@ -152,6 +152,5 @@
     "last"
   ],
   "title": "Quote",
-  "type": "object",
-  "$comment": "phase1 export from contracts.schema.models.Quote"
+  "type": "object"
 }

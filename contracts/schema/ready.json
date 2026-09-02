@@ -36,6 +36,5 @@
     "redis"
   ],
   "title": "ReadyResponse",
-  "type": "object",
-  "$comment": "phase1 export from contracts.schema.models.ReadyResponse"
+  "type": "object"
 }

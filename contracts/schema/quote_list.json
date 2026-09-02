@@ -177,6 +177,5 @@
     "items"
   ],
   "title": "QuoteList",
-  "type": "object",
-  "$comment": "phase1 export from contracts.schema.models.QuoteList"
+  "type": "object"
 }

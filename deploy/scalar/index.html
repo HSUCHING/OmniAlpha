@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>OmniAlpha API Reference (Scalar)</title>
+  <style>
+    body { margin: 0; }
+    .oa-banner { font-family: system-ui, sans-serif; font-size: 13px; padding: 10px 16px; background: #1a1a2e; color: #eaeaea; }
+    .oa-warn { color: #ffb454; }
+    .oa-banner code { background: #333; padding: 1px 6px; border-radius: 3px; }
+  </style>
+</head>
+<body>
+  <div class="oa-banner">
+    Try facade at <code>http://127.0.0.1:8700</code> with <code>X-API-Key: dev-key</code>
+    · <span class="oa-warn">公网勿裸奔 — Scalar local/compose only; do not tunnel/publish :8701</span>
+  </div>
+  <script
+    id="api-reference"
+    data-url="/openapi.yaml"
+    data-configuration='{"theme":"purple","servers":[{"url":"http://127.0.0.1:8700","description":"Local facade"}],"authentication":{"preferredSecurityScheme":"ApiKeyAuth","apiKey":{"token":"dev-key"}}}'
+  ></script>
+  <script src="https://cdn.jsdelivr.net/npm/@scalar/api-reference"></script>
+</body>
+</html>

@@ -94,6 +94,5 @@
     "items"
   ],
   "title": "BarList",
-  "type": "object",
-  "$comment": "phase1 export from contracts.schema.models.BarList"
+  "type": "object"
 }

@@ -43,5 +43,15 @@ services:
       redis:
         condition: service_healthy
 
+
+  scalar:
+    image: nginx:alpine
+    ports: ["8701:80"]
+    volumes:
+      - ./contracts/openapi.yaml:/usr/share/nginx/html/openapi.yaml:ro
+      - ./deploy/scalar/index.html:/usr/share/nginx/html/index.html:ro
+      - ./deploy/scalar/nginx.conf:/etc/nginx/conf.d/default.conf:ro
+    restart: unless-stopped
+
 volumes:
   facade_pg:

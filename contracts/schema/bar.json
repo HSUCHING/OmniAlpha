@@ -69,6 +69,5 @@
     "close"
   ],
   "title": "Bar",
-  "type": "object",
-  "$comment": "phase1 export from contracts.schema.models.Bar"
+  "type": "object"
 }

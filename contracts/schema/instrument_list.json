@@ -108,6 +108,5 @@
     "total"
   ],
   "title": "InstrumentList",
-  "type": "object",
-  "$comment": "phase1 export from contracts.schema.models.InstrumentList"
+  "type": "object"
 }

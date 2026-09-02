@@ -1,5 +1,6 @@
 # MCP tools mirror of /v1 (phase-1). Keep param names lockstep with OpenAPI + apps/facade/mcp_tools.py.
 # 实装工具 vs 未实现（soft）需与 capabilities / HTTP 状态对齐。
+# F3: list_prediction_events / get_prediction_quote 未注册（不在 tools 列表）；HTTP /v1/prediction/* 仍 501。
 version: "0.2.0"
 server: data-facade
 transport: http
@@ -42,21 +43,5 @@ tools:
     returns: CapabilitiesResponse
     notes: "Single source of truth: domain/meta."
 
-  - name: list_prediction_events
-    phase: 1
-    status: unsupported
-    http: { method: GET, path: /v1/prediction/events, status: 501 }
-    params:
-      - { name: limit, type: integer, required: false, default: 10 }
-      - { name: active, type: boolean, required: false, default: true }
-    returns: soft_dict
-    notes: "F3 backlog: MCP soft dict ≠ HTTP 501; do not advertise implemented."
-
-  - name: get_prediction_quote
-    phase: 1
-    status: unsupported
-    http: { method: GET, path: /v1/prediction/quote, status: 501 }
-    params:
-      - { name: market_id, type: string, required: true }
-    returns: soft_dict
-    notes: "F3 backlog; Prediction* Pydantic pending product launch."
+# 未注册（F3）：prediction MCP soft tools 已移除；勿广告为 implemented。
+# HTTP /v1/prediction/* → 501 unsupported（与 capabilities 对齐）。

@@ -85,6 +85,7 @@ docker compose up -d --build
 | 组件 | 地址 |
 |------|------|
 | Facade API | `http://127.0.0.1:8700` |
+| Scalar API 文档 | `http://127.0.0.1:8701`（独立 nginx，只读挂载 `contracts/openapi.yaml`） |
 | Postgres | `localhost:5433`（用户/库 `facade`） |
 | Redis | `localhost:6379` |
 | API Key | 请求头 `X-API-Key: dev-key`（可用环境变量改） |
@@ -103,7 +104,8 @@ curl -sS -H "X-API-Key: $KEY" \
 ```
 
 - Swagger：`$BASE/docs`  
-- MCP：`$BASE/mcp`（`search_instruments` / `get_quotes` / `get_bars`）
+- MCP：`$BASE/mcp`（`search_instruments` / `get_quotes` / `get_bars` / `get_capabilities`；prediction 工具已 F3 移除）
+- Scalar：`http://127.0.0.1:8701/`（OpenAPI 只读；试调加 `X-API-Key: dev-key`）
 
 公网（若已配 Cloudflare Tunnel）：
 
@@ -135,13 +137,50 @@ POLY:{market_id}
 
 ---
 
+
+## Scalar API 文档（:8701）
+
+```bash
+docker compose up -d scalar
+```
+
+| 项 | 值 |
+|---|---|
+| URL | `http://127.0.0.1:8701` |
+| OpenAPI | `http://127.0.0.1:8701/openapi.yaml`（只读挂载 `contracts/openapi.yaml`） |
+| Try-it 目标 | `http://127.0.0.1:8700` |
+| API Key | 请求头 `X-API-Key: dev-key` |
+
+**公网勿裸奔**：Scalar 仅供本地 / Compose；不要 Cloudflare Tunnel / 公网发布 `:8701`。
+
+后续可并列挂载 MCP / GraphQL sibling 文档入口（同一契约，不另起 schema）。
+
+
+## Scalar API Reference（本地）
+
+```bash
+docker compose up -d scalar
+```
+
+| 项 | 值 |
+|---|---|
+| URL | `http://127.0.0.1:8701` |
+| OpenAPI | `http://127.0.0.1:8701/openapi.yaml`（只读挂载 `contracts/openapi.yaml`） |
+| Try-it 目标 | `http://127.0.0.1:8700` |
+| API Key | 请求头 `X-API-Key: dev-key` |
+
+**公网勿裸奔**：Scalar 仅供本地 / Compose；不要 Cloudflare Tunnel / 公网发布 `:8701`。
+
+后续可并列挂载 MCP / GraphQL sibling 文档入口（同一契约，不另起 schema）。
+
 ## Docker Compose
 
 根目录 `docker-compose.yml` 包含：
 
 1. **postgres:16** — 标的字典 / 映射  
 2. **redis:7** — 报价快照（短 TTL）  
-3. **facade** — 构建本仓库镜像，监听 **8700**
+3. **facade** — 构建本仓库镜像，监听 **8700**  
+4. **scalar** — 独立 nginx（**:8701**），只读挂载 OpenAPI；**不在 domain、不改 capabilities**
 
 说明：在部分受限主机上 facade 使用 `network_mode: host`，以便访问外部行情源与宿主机上的 Postgres/Redis 端口；详见 compose 内注释。
 
@@ -151,7 +190,6 @@ docker compose ps
 docker compose logs -f facade
 ```
 
----
 
 ## 路线图（摘要）
 

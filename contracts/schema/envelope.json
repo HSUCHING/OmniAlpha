@@ -22,6 +22,5 @@
     "source"
   ],
   "title": "EnvelopeMixin",
-  "type": "object",
-  "$comment": "phase1 export from contracts.schema.models.EnvelopeMixin"
+  "type": "object"
 }

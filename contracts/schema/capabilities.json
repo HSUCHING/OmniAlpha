@@ -83,6 +83,5 @@
     "matrix"
   ],
   "title": "CapabilitiesResponse",
-  "type": "object",
-  "$comment": "phase1 export from contracts.schema.models.CapabilitiesResponse"
+  "type": "object"
 }

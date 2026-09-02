@@ -5,8 +5,13 @@ info:
   description: |
     L0–L5 finance data product (phase-1).
     Markets are query params / symbol prefixes (CN:, US:, CRYPTO:, POLY:), never path segments.
+    Authenticated /v1 routes require header `X-API-Key` (default `dev-key`).
+    Scalar UI (local): http://127.0.0.1:8701 — 公网勿裸奔.
 servers:
+  - url: http://127.0.0.1:8700
+    description: Local facade (host network)
   - url: http://localhost:8700
+    description: Local facade alias
 paths:
   /healthz:
     get:
@@ -186,20 +191,34 @@ components:
       name: X-API-Key
 
   schemas:
-    ApiError:
+    Error:
       type: object
-      description: |
-        Target unified error body (post-phase1). Phase1 responses still use HTTP status + detail.
       required: [code, message]
       properties:
         code:
           type: string
-          enum: [not_found, unsupported, stale, invalid_id, rate_limited]
+          enum:
+            - validation_error
+            - unauthorized
+            - not_found
+            - not_implemented
+            - upstream_error
+            - dependency_unavailable
+            - internal_error
+            - unsupported
+            - stale
+            - invalid_id
+            - rate_limited
         message:
           type: string
+        detail:
+          description: Optional structured context
         market:
           type: string
           enum: [CN, US, CRYPTO, POLY]
         capability:
           type: string
-
+    ErrorBody:
+      $ref: "#/components/schemas/Error"
+    ApiError:
+      $ref: "#/components/schemas/Error"

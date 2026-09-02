@@ -85,6 +85,5 @@
     "market"
   ],
   "title": "Instrument",
-  "type": "object",
-  "$comment": "phase1 export from contracts.schema.models.Instrument"
+  "type": "object"
 }
