@@ -195,7 +195,6 @@ components:
       type: object
       description: |
         Target unified error body (post-phase1). Phase1 responses still use HTTP status + detail.
-        phase1 gradually adopts ApiError for unsupported/invalid_id/not_found only.
       required: [code, message]
       properties:
         code:
@@ -208,3 +207,4 @@ components:
           enum: [CN, US, CRYPTO, POLY]
         capability:
           type: string
+
