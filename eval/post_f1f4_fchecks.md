@@ -1,4 +1,4 @@
-# F1–F4 + Scalar 复测报告（`bb4c174`）
+# F1–F4 + Scalar 复测报告（初测 bb4c174；验收对象升级为 **`e02ef4c`**）
 
 - 时间: 2026-09-03 03:28 CST
 - BASE: `http://127.0.0.1:8700`  Scalar: `http://127.0.0.1:8701`
@@ -34,3 +34,5 @@
 ## 结论
 
 F1–F4：**F1 PASS / F2 PASS / F3 PASS / F4 PASS**；Scalar :8701 PASS；矩阵 FAIL=0。公网 healthz soft 口径照旧。
+
+详见 `eval/diff_bb4c174_to_e02ef4c.md`。
