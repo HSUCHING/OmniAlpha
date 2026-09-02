@@ -85,3 +85,8 @@
 | POLY prediction | 501 | {"detail":"prediction not implemented in phase-1","capability":"prediction","status":"unsupported"} |
 | MCP watch US:AAPL | 200 | SKIP/FAIL {'items': [], 'warnings': ['US:AAPL: refresh failed: Too Many Requests. Rate limited. Try after a while.']} |
 | MCP watch CRYPTO:BTCUSDT | 200 | PASS items=1 source=okx |
+
+## 公网 healthz 复核（2026-09-03 00:55 CST）
+
+- `https://api.metacognix.xyz/healthz` → **200** `{"status":"ok","service":"omnialpha","version":"0.1.0"}`
+- 此前本机 soft 403/CF1010 已恢复；**未**全量重跑矩阵（按 Finance 指示）。

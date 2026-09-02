@@ -43,3 +43,8 @@
 ## 结论
 
 第二轮相对基线：**FAIL=0**；CN/US/CRYPTO 的 watch+query 均为 PASS；screen/analyze/prediction 以 501 正确标 SKIP/N/A。公网 healthz 跑数器 soft SKIP(403)，独立探针见上。
+
+## 公网 healthz 复核（2026-09-03 00:55 CST）
+
+- `https://api.metacognix.xyz/healthz` → **200** `{"status":"ok","service":"omnialpha","version":"0.1.0"}`
+- 此前本机 soft 403/CF1010 已恢复；**未**全量重跑矩阵（按 Finance 指示）。
