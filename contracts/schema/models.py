@@ -2,8 +2,7 @@
 from __future__ import annotations
 
 from datetime import datetime, timezone
-from enum import Enum
-from typing import Any, Literal, Optional
+from typing import Literal, Optional
 
 from pydantic import BaseModel, Field
 
@@ -119,38 +118,28 @@ class ReadyResponse(BaseModel):
 
 
 
-# --- Error (F4) ---
-# Wired in apps/facade/main.py for 401/422/501/503 with `code` field.
-class ErrorCode(str, Enum):
-    """Machine-readable error codes (contract semantic + HTTP wiring)."""
-
-    NOT_FOUND = "not_found"
-    UNSUPPORTED = "unsupported"
-    STALE = "stale"
-    INVALID_ID = "invalid_id"
-    RATE_LIMITED = "rate_limited"
-    UNAUTHORIZED = "unauthorized"
-    VALIDATION_ERROR = "validation_error"
-    NOT_IMPLEMENTED = "not_implemented"
-    DEPENDENCY_UNAVAILABLE = "dependency_unavailable"
-    UPSTREAM_ERROR = "upstream_error"
-    INTERNAL_ERROR = "internal_error"
+# --- Error (target / post-phase1) ---
+# Contract be48ceb / errors.md: ONLY these five codes. Do not add unauthorized/validation_error/etc.
+ErrorCode = Literal[
+    "not_found",
+    "unsupported",
+    "stale",
+    "invalid_id",
+    "rate_limited",
+]
 
 
-class ErrorBody(BaseModel):
-    """Unified error body returned by facade exception handlers."""
+class ApiError(BaseModel):
+    """统一错误体（目标契约）。phase1 逐步采用。"""
 
     code: ErrorCode = Field(description="Machine-readable error code")
     message: str = Field(description="Human-readable explanation")
-    detail: Optional[Any] = Field(default=None, description="Optional structured detail")
     market: Optional[MarketPrefix] = Field(default=None, description="Optional market context")
     capability: Optional[str] = Field(
         default=None, description="Optional capability e.g. watch|query|analyze|screen|prediction"
     )
 
 
-# Backward-compatible aliases
-ApiError = ErrorBody
 ReadyCheck = ReadyResponse
 
 SERVICE_NAME = "omnialpha"

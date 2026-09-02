@@ -1,45 +1,22 @@
 {
-  "$defs": {
-    "ErrorCode": {
-      "description": "Machine-readable error codes (contract semantic + HTTP wiring).",
+  "description": "统一错误体（目标契约）。phase1 逐步采用。",
+  "properties": {
+    "code": {
+      "description": "Machine-readable error code",
       "enum": [
         "not_found",
         "unsupported",
         "stale",
         "invalid_id",
-        "rate_limited",
-        "unauthorized",
-        "validation_error",
-        "not_implemented",
-        "dependency_unavailable",
-        "upstream_error",
-        "internal_error"
+        "rate_limited"
       ],
-      "title": "ErrorCode",
+      "title": "Code",
       "type": "string"
-    }
-  },
-  "description": "Unified error body returned by facade exception handlers.",
-  "properties": {
-    "code": {
-      "$ref": "#/$defs/ErrorCode",
-      "description": "Machine-readable error code"
     },
     "message": {
       "description": "Human-readable explanation",
       "title": "Message",
       "type": "string"
-    },
-    "detail": {
-      "anyOf": [
-        {},
-        {
-          "type": "null"
-        }
-      ],
-      "default": null,
-      "description": "Optional structured detail",
-      "title": "Detail"
     },
     "market": {
       "anyOf": [
@@ -78,6 +55,6 @@
     "code",
     "message"
   ],
-  "title": "ErrorBody",
+  "title": "ApiError",
   "type": "object"
 }

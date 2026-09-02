@@ -199,18 +199,7 @@ components:
       properties:
         code:
           type: string
-          enum:
-            - validation_error
-            - unauthorized
-            - not_found
-            - not_implemented
-            - upstream_error
-            - dependency_unavailable
-            - internal_error
-            - unsupported
-            - stale
-            - invalid_id
-            - rate_limited
+          enum: [not_found, unsupported, stale, invalid_id, rate_limited]
         message:
           type: string
         market:
