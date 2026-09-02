@@ -176,3 +176,7 @@ docker compose logs -f facade
 ## License
 
 默认私有仓库。若需开源协议，再说一声补上。
+
+## Evaluation
+
+See [`Eval.md`](./Eval.md) and `eval/` for architecture/implementation acceptance gates (G0–G5).

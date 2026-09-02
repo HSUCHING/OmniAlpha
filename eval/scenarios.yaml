@@ -1,0 +1,72 @@
+# Machine-readable scenario matrix. phase: 1 = required for phase1 GO
+version: 1
+phase_current: 1
+scenarios:
+  - id: S1
+    name: search instruments
+    capability: query
+    invoke: [domain, http, mcp]
+    http: { method: GET, path: /v1/instruments, query: { q: "茅台" } }
+    mcp: { tool: search_instruments, args: { q: "茅台" } }
+    expect: { http_status: 200, min_items: 1 }
+    phase: 1
+  - id: S2
+    name: get quote
+    capability: watch
+    invoke: [domain, http, mcp]
+    http: { method: GET, path: /v1/quotes, query: { symbols: "CN:600519" } }
+    mcp: { tool: get_quotes, args: { symbols: ["CN:600519"] } }
+    expect: { http_status: 200, fields: [symbol, last, as_of, source, stale] }
+    phase: 1
+  - id: S3
+    name: get bars 1d
+    capability: query
+    invoke: [domain, http, mcp]
+    http: { method: GET, path: /v1/bars, query: { symbol: "CN:600519", interval: "1d", limit: "5" } }
+    mcp: { tool: get_bars, args: { symbol: "CN:600519", interval: "1d", limit: 5 } }
+    expect: { http_status: 200, min_items: 1 }
+    phase: 1
+  - id: S4
+    name: multi-symbol quotes
+    capability: watch
+    invoke: [http, mcp]
+    http: { method: GET, path: /v1/quotes, query: { symbols: "CN:600519,CN:000001" } }
+    expect: { http_status: 200, min_items: 1 }
+    phase: 1
+  - id: S5
+    name: cross-market seed
+    capability: query
+    invoke: [http]
+    http: { method: GET, path: /v1/instruments, query: { market: "US" } }
+    expect: { http_status: 200 }
+    phase: 1
+    soft: true
+  - id: S6
+    name: invalid prefix
+    capability: protocol
+    invoke: [http]
+    http: { method: GET, path: /v1/quotes, query: { symbols: "FOO:1" } }
+    expect: { http_status: 422 }
+    phase: 1
+  - id: S7
+    name: missing api key
+    capability: auth
+    invoke: [http]
+    http: { method: GET, path: /v1/instruments, headers: {} }
+    expect: { http_status: 401 }
+    phase: 1
+  - id: S8
+    name: unimplemented analytics not 500
+    capability: analyze
+    invoke: [http]
+    http: { method: GET, path: /v1/analytics/indicators }
+    expect: { http_status_in: [404, 501, 422] }
+    phase: 1
+  - id: S9
+    name: stale flag
+    capability: watch
+    phase: 2
+  - id: S14
+    name: mcp auth parity
+    capability: auth
+    phase: 2
