@@ -74,7 +74,7 @@ OmniAlpha/
 ## 快速开始
 
 ```bash
-git clone https://github.com/<you>/OmniAlpha.git
+git clone https://github.com/HSUCHING/OmniAlpha.git
 cd OmniAlpha
 cp .env.example .env
 docker compose up -d --build
