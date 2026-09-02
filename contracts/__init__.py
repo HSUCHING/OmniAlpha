@@ -1,0 +1,1 @@
+"""Contracts: schemas and OpenAPI."""

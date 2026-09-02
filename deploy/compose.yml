@@ -1,0 +1,47 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: facade
+      POSTGRES_PASSWORD: facade
+      POSTGRES_DB: facade
+    ports:
+      - "5433:5432"
+    volumes:
+      - facade_pg:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U facade -d facade"]
+      interval: 3s
+      timeout: 3s
+      retries: 20
+
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 3s
+      timeout: 3s
+      retries: 20
+
+  facade:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    # Host network: some environments block container bridge DNS/egress and
+    # container↔container TCP; host mode keeps :8700 and Tencent quotes working.
+    network_mode: host
+    environment:
+      DATABASE_URL: postgresql://facade:facade@127.0.0.1:5433/facade
+      REDIS_URL: redis://127.0.0.1:6379/0
+      DATA_FACADE_API_KEY: ${DATA_FACADE_API_KEY:-dev-key}
+    command: ["uvicorn", "apps.facade.main:app", "--host", "0.0.0.0", "--port", "8700"]
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+
+volumes:
+  facade_pg:

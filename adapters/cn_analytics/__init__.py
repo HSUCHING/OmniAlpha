@@ -1,0 +1,1 @@
+"""CN analytics adapter stub."""

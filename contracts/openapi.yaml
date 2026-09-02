@@ -1,0 +1,76 @@
+openapi: 3.1.0
+info:
+  title: Data Facade
+  version: 0.1.0
+  description: |
+    L0–L5 finance data product (phase-1).
+    Markets are query params / symbol prefixes (CN:, US:, CRYPTO:, POLY:), never path segments.
+servers:
+  - url: http://localhost:8700
+paths:
+  /healthz:
+    get:
+      summary: Health check
+      responses:
+        "200":
+          description: OK
+  /v1/instruments:
+    get:
+      summary: List / filter instruments
+      parameters:
+        - name: market
+          in: query
+          schema: { type: string, enum: [CN, US, CRYPTO, POLY] }
+        - name: q
+          in: query
+          schema: { type: string }
+        - name: limit
+          in: query
+          schema: { type: integer, default: 50 }
+        - name: offset
+          in: query
+          schema: { type: integer, default: 0 }
+      security:
+        - ApiKeyAuth: []
+      responses:
+        "200":
+          description: Instrument list
+  /v1/quotes:
+    get:
+      summary: Get quotes
+      parameters:
+        - name: symbols
+          in: query
+          required: true
+          schema: { type: string }
+          description: "Comma-separated e.g. CN:600519"
+      security:
+        - ApiKeyAuth: []
+      responses:
+        "200":
+          description: Quote list
+  /v1/bars:
+    get:
+      summary: Get OHLCV bars
+      parameters:
+        - name: symbol
+          in: query
+          required: true
+          schema: { type: string }
+        - name: interval
+          in: query
+          schema: { type: string, default: 1d }
+        - name: limit
+          in: query
+          schema: { type: integer, default: 5 }
+      security:
+        - ApiKeyAuth: []
+      responses:
+        "200":
+          description: Bar list
+components:
+  securitySchemes:
+    ApiKeyAuth:
+      type: apiKey
+      in: header
+      name: X-API-Key

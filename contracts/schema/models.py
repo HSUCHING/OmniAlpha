@@ -1,0 +1,92 @@
+"""Normalized L0–L5 data product models (phase-1)."""
+from __future__ import annotations
+
+from datetime import datetime, timezone
+from typing import Annotated, Literal, Optional
+
+from pydantic import BaseModel, Field, field_validator
+
+KNOWN_PREFIXES = ("CN", "US", "CRYPTO", "POLY")
+MarketPrefix = Literal["CN", "US", "CRYPTO", "POLY"]
+
+
+def utc_now_iso() -> str:
+    return datetime.now(timezone.utc).replace(microsecond=0).isoformat().replace("+00:00", "Z")
+
+
+class SymbolId(BaseModel):
+    """Canonical symbol id: PREFIX:CODE e.g. CN:600519, US:AAPL."""
+
+    raw: str
+    prefix: MarketPrefix
+    code: str
+
+    @property
+    def canonical(self) -> str:
+        return f"{self.prefix}:{self.code}"
+
+    def __str__(self) -> str:
+        return self.canonical
+
+
+class EnvelopeMixin(BaseModel):
+    as_of: str = Field(description="UTC ISO8601 timestamp when data was observed/produced")
+    source: str = Field(description="Upstream or synthetic source identifier")
+    stale: bool = Field(default=False, description="True if served past preferred freshness")
+
+
+class Instrument(EnvelopeMixin):
+    symbol: str = Field(description="Canonical id e.g. CN:600519")
+    name: str
+    market: MarketPrefix
+    exchange: Optional[str] = None
+    currency: Optional[str] = None
+    asset_class: Optional[str] = None
+    active: bool = True
+
+
+class Quote(EnvelopeMixin):
+    symbol: str
+    last: float
+    bid: Optional[float] = None
+    ask: Optional[float] = None
+    open: Optional[float] = None
+    high: Optional[float] = None
+    low: Optional[float] = None
+    prev_close: Optional[float] = None
+    volume: Optional[float] = None
+    change: Optional[float] = None
+    change_pct: Optional[float] = None
+    name: Optional[str] = None
+
+
+class Bar(EnvelopeMixin):
+    symbol: str
+    interval: str
+    open_time: str
+    open: float
+    high: float
+    low: float
+    close: float
+    volume: Optional[float] = None
+
+
+class InstrumentList(BaseModel):
+    items: list[Instrument]
+    total: int
+
+
+class QuoteList(BaseModel):
+    items: list[Quote]
+    warnings: list[str] = Field(default_factory=list)
+
+
+class BarList(BaseModel):
+    items: list[Bar]
+    warnings: list[str] = Field(default_factory=list)
+
+
+class HealthResponse(BaseModel):
+    status: str
+    service: str = "data-facade"
+    version: str = "0.1.0"

@@ -1,0 +1,1 @@
+"""Polymarket adapter stub."""
