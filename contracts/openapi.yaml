@@ -194,7 +194,11 @@ components:
     ApiError:
       type: object
       description: |
-        Target unified error body (post-phase1). Phase1 responses still use HTTP status + detail.
+        Unified error body. code enum is LOCKED to exactly five values
+        (not_found|unsupported|stale|invalid_id|rate_limited).
+        Do NOT add validation_error / unauthorized / not_implemented / etc.
+        Phase1 dual-track: 401 and generic 422 may still return FastAPI `{detail}` only;
+        404/501 and ID-shaped 422 use ApiError with the five codes.
       required: [code, message]
       properties:
         code:
