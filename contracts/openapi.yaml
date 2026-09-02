@@ -139,33 +139,45 @@ paths:
           description: Not implemented in phase-1
   /v1/prediction/events:
     get:
-      summary: List prediction events/markets
+      summary: List prediction events (phase-1 stub)
       security:
         - ApiKeyAuth: []
       responses:
-        "200":
-          description: Prediction list
+        "501":
+          description: Not implemented in phase-1 (Prediction* schema not closed)
   /v1/prediction/markets:
     get:
-      summary: List prediction markets
+      summary: List prediction markets (phase-1 stub)
       security:
         - ApiKeyAuth: []
       responses:
-        "200":
-          description: Prediction markets
-  /v1/prediction/quotes:
+        "501":
+          description: Not implemented in phase-1
+  /v1/prediction/markets/{market_id}:
     get:
-      summary: Prediction market quote by id
+      summary: Get prediction market by id (phase-1 stub)
       parameters:
         - name: market_id
-          in: query
+          in: path
           required: true
           schema: { type: string }
       security:
         - ApiKeyAuth: []
       responses:
-        "200":
-          description: Prediction quote
+        "501":
+          description: Not implemented in phase-1
+  /v1/prediction/quote:
+    get:
+      summary: Prediction market quote by id (phase-1 stub)
+      parameters:
+        - name: market_id
+          in: query
+          schema: { type: string }
+      security:
+        - ApiKeyAuth: []
+      responses:
+        "501":
+          description: Not implemented in phase-1
 components:
   securitySchemes:
     ApiKeyAuth:
