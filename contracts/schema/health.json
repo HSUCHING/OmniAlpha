@@ -1,0 +1,24 @@
+{
+  "properties": {
+    "status": {
+      "title": "Status",
+      "type": "string"
+    },
+    "service": {
+      "default": "omnialpha",
+      "title": "Service",
+      "type": "string"
+    },
+    "version": {
+      "default": "0.1.0",
+      "title": "Version",
+      "type": "string"
+    }
+  },
+  "required": [
+    "status"
+  ],
+  "title": "HealthResponse",
+  "type": "object",
+  "$comment": "phase1 export from contracts.schema.models.HealthResponse"
+}

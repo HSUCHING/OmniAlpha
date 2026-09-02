@@ -1,0 +1,36 @@
+{
+  "$comment": "Generated from contracts/schema/models.py (phase1 as-built + Error target). Do not hand-edit; re-export from Pydantic.",
+  "phase": "phase1",
+  "implemented_field_mapping": {
+    "instrument_id": "symbol",
+    "price": "last",
+    "timeframe": "interval",
+    "start": "open_time"
+  },
+  "target_only": [
+    "ApiError",
+    "instrument_id",
+    "price",
+    "venue",
+    "native_symbol",
+    "timezone",
+    "capabilities[]",
+    "adjust",
+    "end"
+  ],
+  "files": [
+    "bar.json",
+    "bar_list.json",
+    "capabilities.json",
+    "capability_flags.json",
+    "envelope.json",
+    "error.json",
+    "health.json",
+    "instrument.json",
+    "instrument_list.json",
+    "quote.json",
+    "quote_list.json",
+    "ready.json",
+    "symbol_id.json"
+  ]
+}

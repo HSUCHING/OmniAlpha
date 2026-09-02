@@ -1,0 +1,61 @@
+{
+  "description": "统一错误体（目标契约）。phase1 未强制 HTTP 响应切换到此结构。",
+  "properties": {
+    "code": {
+      "description": "Machine-readable error code",
+      "enum": [
+        "not_found",
+        "unsupported",
+        "stale",
+        "invalid_id",
+        "rate_limited"
+      ],
+      "title": "Code",
+      "type": "string"
+    },
+    "message": {
+      "description": "Human-readable explanation",
+      "title": "Message",
+      "type": "string"
+    },
+    "market": {
+      "anyOf": [
+        {
+          "enum": [
+            "CN",
+            "US",
+            "CRYPTO",
+            "POLY"
+          ],
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "description": "Optional market context",
+      "title": "Market"
+    },
+    "capability": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "description": "Optional capability e.g. watch|query|analyze|screen|prediction",
+      "title": "Capability"
+    }
+  },
+  "required": [
+    "code",
+    "message"
+  ],
+  "title": "ApiError",
+  "type": "object",
+  "$comment": "phase1 export from contracts.schema.models.ApiError"
+}

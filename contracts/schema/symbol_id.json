@@ -1,0 +1,31 @@
+{
+  "description": "Canonical symbol id: PREFIX:CODE e.g. CN:600519, US:AAPL.",
+  "properties": {
+    "raw": {
+      "title": "Raw",
+      "type": "string"
+    },
+    "prefix": {
+      "enum": [
+        "CN",
+        "US",
+        "CRYPTO",
+        "POLY"
+      ],
+      "title": "Prefix",
+      "type": "string"
+    },
+    "code": {
+      "title": "Code",
+      "type": "string"
+    }
+  },
+  "required": [
+    "raw",
+    "prefix",
+    "code"
+  ],
+  "title": "SymbolId",
+  "type": "object",
+  "$comment": "phase1 export from contracts.schema.models.SymbolId"
+}

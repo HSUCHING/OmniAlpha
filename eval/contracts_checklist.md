@@ -13,8 +13,8 @@
 - [ ] Quote has `symbol` + `last` + envelope fields
 
 ## Enhancements (GO-WITH-FIXES if missing)
-- [ ] Exported JSON Schema files under `contracts/schema/`
-- [ ] `contracts/mcp-tools.yaml`
-- [ ] `contracts/id.md`
-- [ ] Unified Error model with `code` enum
+- [x] Exported JSON Schema files under `contracts/schema/`
+- [x] `contracts/mcp-tools.yaml`
+- [x] `contracts/id.md`
+- [x] Unified Error model with `code` enum（目标契约；phase1 HTTP+detail 仍实装）
 - [ ] `/v1/meta/capabilities`

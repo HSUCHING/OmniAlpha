@@ -1,0 +1,90 @@
+{
+  "properties": {
+    "as_of": {
+      "description": "UTC ISO8601 timestamp when data was observed/produced",
+      "title": "As Of",
+      "type": "string"
+    },
+    "source": {
+      "description": "Upstream or synthetic source identifier",
+      "title": "Source",
+      "type": "string"
+    },
+    "stale": {
+      "default": false,
+      "description": "True if served past preferred freshness",
+      "title": "Stale",
+      "type": "boolean"
+    },
+    "symbol": {
+      "description": "Canonical id e.g. CN:600519",
+      "title": "Symbol",
+      "type": "string"
+    },
+    "name": {
+      "title": "Name",
+      "type": "string"
+    },
+    "market": {
+      "enum": [
+        "CN",
+        "US",
+        "CRYPTO",
+        "POLY"
+      ],
+      "title": "Market",
+      "type": "string"
+    },
+    "exchange": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Exchange"
+    },
+    "currency": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Currency"
+    },
+    "asset_class": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Asset Class"
+    },
+    "active": {
+      "default": true,
+      "title": "Active",
+      "type": "boolean"
+    }
+  },
+  "required": [
+    "as_of",
+    "source",
+    "symbol",
+    "name",
+    "market"
+  ],
+  "title": "Instrument",
+  "type": "object",
+  "$comment": "phase1 export from contracts.schema.models.Instrument"
+}

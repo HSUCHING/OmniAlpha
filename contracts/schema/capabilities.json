@@ -1,0 +1,88 @@
+{
+  "$defs": {
+    "CapabilityFlags": {
+      "properties": {
+        "watch": {
+          "default": false,
+          "title": "Watch",
+          "type": "boolean"
+        },
+        "query": {
+          "default": false,
+          "title": "Query",
+          "type": "boolean"
+        },
+        "analyze": {
+          "default": false,
+          "title": "Analyze",
+          "type": "boolean"
+        },
+        "screen": {
+          "default": false,
+          "title": "Screen",
+          "type": "boolean"
+        },
+        "prediction": {
+          "default": false,
+          "title": "Prediction",
+          "type": "boolean"
+        },
+        "provider": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Provider"
+        },
+        "notes": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Notes"
+        }
+      },
+      "title": "CapabilityFlags",
+      "type": "object"
+    }
+  },
+  "properties": {
+    "phase": {
+      "default": "phase1",
+      "title": "Phase",
+      "type": "string"
+    },
+    "markets": {
+      "additionalProperties": {
+        "$ref": "#/$defs/CapabilityFlags"
+      },
+      "title": "Markets",
+      "type": "object"
+    },
+    "matrix": {
+      "items": {
+        "additionalProperties": true,
+        "type": "object"
+      },
+      "title": "Matrix",
+      "type": "array"
+    }
+  },
+  "required": [
+    "markets",
+    "matrix"
+  ],
+  "title": "CapabilitiesResponse",
+  "type": "object",
+  "$comment": "phase1 export from contracts.schema.models.CapabilitiesResponse"
+}

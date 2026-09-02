@@ -1,0 +1,74 @@
+{
+  "properties": {
+    "as_of": {
+      "description": "UTC ISO8601 timestamp when data was observed/produced",
+      "title": "As Of",
+      "type": "string"
+    },
+    "source": {
+      "description": "Upstream or synthetic source identifier",
+      "title": "Source",
+      "type": "string"
+    },
+    "stale": {
+      "default": false,
+      "description": "True if served past preferred freshness",
+      "title": "Stale",
+      "type": "boolean"
+    },
+    "symbol": {
+      "title": "Symbol",
+      "type": "string"
+    },
+    "interval": {
+      "title": "Interval",
+      "type": "string"
+    },
+    "open_time": {
+      "title": "Open Time",
+      "type": "string"
+    },
+    "open": {
+      "title": "Open",
+      "type": "number"
+    },
+    "high": {
+      "title": "High",
+      "type": "number"
+    },
+    "low": {
+      "title": "Low",
+      "type": "number"
+    },
+    "close": {
+      "title": "Close",
+      "type": "number"
+    },
+    "volume": {
+      "anyOf": [
+        {
+          "type": "number"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Volume"
+    }
+  },
+  "required": [
+    "as_of",
+    "source",
+    "symbol",
+    "interval",
+    "open_time",
+    "open",
+    "high",
+    "low",
+    "close"
+  ],
+  "title": "Bar",
+  "type": "object",
+  "$comment": "phase1 export from contracts.schema.models.Bar"
+}

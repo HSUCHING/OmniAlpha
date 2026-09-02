@@ -1,0 +1,41 @@
+{
+  "properties": {
+    "status": {
+      "title": "Status",
+      "type": "string"
+    },
+    "postgres": {
+      "title": "Postgres",
+      "type": "boolean"
+    },
+    "redis": {
+      "title": "Redis",
+      "type": "boolean"
+    },
+    "service": {
+      "default": "omnialpha",
+      "title": "Service",
+      "type": "string"
+    },
+    "detail": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Detail"
+    }
+  },
+  "required": [
+    "status",
+    "postgres",
+    "redis"
+  ],
+  "title": "ReadyResponse",
+  "type": "object",
+  "$comment": "phase1 export from contracts.schema.models.ReadyResponse"
+}

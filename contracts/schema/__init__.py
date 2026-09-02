@@ -1,10 +1,12 @@
 from .models import (
+    ApiError,
     Bar,
     BarList,
     CapabilitiesResponse,
     CapabilityFlags,
     CapabilityName,
     EnvelopeMixin,
+    ErrorCode,
     HealthResponse,
     Instrument,
     InstrumentList,
@@ -21,12 +23,14 @@ from .models import (
 )
 
 __all__ = [
+    "ApiError",
     "Bar",
     "BarList",
     "CapabilitiesResponse",
     "CapabilityFlags",
     "CapabilityName",
     "EnvelopeMixin",
+    "ErrorCode",
     "HealthResponse",
     "Instrument",
     "InstrumentList",

@@ -184,3 +184,22 @@ components:
       type: apiKey
       in: header
       name: X-API-Key
+
+  schemas:
+    ApiError:
+      type: object
+      description: |
+        Target unified error body (post-phase1). Phase1 responses still use HTTP status + detail.
+      required: [code, message]
+      properties:
+        code:
+          type: string
+          enum: [not_found, unsupported, stale, invalid_id, rate_limited]
+        message:
+          type: string
+        market:
+          type: string
+          enum: [CN, US, CRYPTO, POLY]
+        capability:
+          type: string
+
