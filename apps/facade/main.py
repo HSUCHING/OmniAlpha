@@ -15,10 +15,11 @@ from starlette.exceptions import HTTPException as StarletteHTTPException
 
 from apps.facade.wiring import setup_providers
 from contracts.schema import (
-    ApiError,
     BarList,
     CapabilitiesResponse,
     CapabilityFlags,
+    ErrorBody,
+    ErrorCode,
     HealthResponse,
     InstrumentList,
     QuoteList,
@@ -101,40 +102,56 @@ app = FastAPI(
     lifespan=_build_lifespan(),
 )
 
-# phase1 gradually adopts ApiError for unsupported/invalid_id/not_found only.
-# CONTRACT: ErrorCode is ONLY not_found|unsupported|stale|invalid_id|rate_limited — no ErrorBody extras.
-_ID_HINTS = ("symbol", "prefix", "PREFIX:CODE", "market prefix", "empty code", "at least one symbol")
+def _error_content(code: ErrorCode, message: str, detail=None, *, market=None, capability=None) -> dict:
+    body = ErrorBody(code=code, message=message, detail=detail, market=market, capability=capability)
+    return body.model_dump(mode="json")
 
 
-def _api_error(code: str, message: str, *, market=None, capability=None) -> dict:
-    return ApiError(code=code, message=message, market=market, capability=capability).model_dump()
-
-
-def _looks_like_invalid_id(detail) -> bool:
-    text = detail if isinstance(detail, str) else str(detail or "")
-    return any(h.lower() in text.lower() for h in _ID_HINTS)
+def _http_status_to_error_code(status_code: int) -> ErrorCode:
+    if status_code == 401:
+        return ErrorCode.UNAUTHORIZED
+    if status_code == 404:
+        return ErrorCode.NOT_FOUND
+    if status_code == 422:
+        return ErrorCode.VALIDATION_ERROR
+    if status_code == 501:
+        return ErrorCode.NOT_IMPLEMENTED
+    if status_code == 503:
+        return ErrorCode.DEPENDENCY_UNAVAILABLE
+    if status_code >= 500:
+        return ErrorCode.INTERNAL_ERROR
+    if 400 <= status_code < 500:
+        return ErrorCode.VALIDATION_ERROR
+    return ErrorCode.INTERNAL_ERROR
 
 
 @app.exception_handler(RequestValidationError)
 async def validation_exception_handler(request: Request, exc: RequestValidationError):
-    return JSONResponse(status_code=422, content={"detail": exc.errors()})
+    return JSONResponse(
+        status_code=422,
+        content=_error_content(
+            ErrorCode.VALIDATION_ERROR,
+            "request validation failed",
+            detail=exc.errors(),
+        ),
+    )
 
 
 @app.exception_handler(StarletteHTTPException)
 async def http_exception_handler(request: Request, exc: StarletteHTTPException):
+    code = _http_status_to_error_code(exc.status_code)
     detail = exc.detail
-    message = detail if isinstance(detail, str) else (str(detail) if detail is not None else "error")
-    headers = getattr(exc, "headers", None)
-    if exc.status_code == 401:
-        return JSONResponse(status_code=401, content={"detail": message}, headers=headers)
-    if exc.status_code == 404:
-        return JSONResponse(status_code=404, content=_api_error("not_found", message), headers=headers)
-    if exc.status_code == 501:
-        return JSONResponse(status_code=501, content=_api_error("unsupported", message), headers=headers)
-    if exc.status_code == 422 and _looks_like_invalid_id(detail):
-        return JSONResponse(status_code=422, content=_api_error("invalid_id", message), headers=headers)
-    return JSONResponse(status_code=exc.status_code, content={"detail": detail}, headers=headers)
-
+    if isinstance(detail, str):
+        message = detail
+        body_detail = None
+    else:
+        message = str(detail) if detail is not None else code.value
+        body_detail = detail
+    return JSONResponse(
+        status_code=exc.status_code,
+        content=_error_content(code, message, detail=body_detail),
+        headers=getattr(exc, "headers", None),
+    )
 
 
 async def require_api_key(x_api_key: Optional[str] = Header(default=None, alias="X-API-Key")):
@@ -183,7 +200,15 @@ def health_ready():
         detail=detail,
     )
     if not ok:
-        return JSONResponse(status_code=503, content=body.model_dump())
+        payload = body.model_dump()
+        payload.update(
+            _error_content(
+                ErrorCode.DEPENDENCY_UNAVAILABLE,
+                detail or "postgres and/or redis unavailable",
+                detail={"postgres": body.postgres, "redis": body.redis, "failed": failed},
+            )
+        )
+        return JSONResponse(status_code=503, content=payload)
     return body
 
 
@@ -275,7 +300,12 @@ def v1_bars(
 def _phase1_not_implemented(capability: str, detail: str):
     return JSONResponse(
         status_code=501,
-        content=_api_error("unsupported", detail, capability=capability),
+        content=_error_content(
+            ErrorCode.NOT_IMPLEMENTED,
+            detail,
+            detail={"status": "unsupported"},
+            capability=capability,
+        ),
     )
 
 
