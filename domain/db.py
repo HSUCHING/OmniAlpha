@@ -20,8 +20,9 @@ SEED_INSTRUMENTS = [
     ("CN:601318", "中国平安", "CN", "SSE", "CNY", "equity"),
     ("US:AAPL", "Apple Inc.", "US", "NASDAQ", "USD", "equity"),
     ("US:MSFT", "Microsoft Corp.", "US", "NASDAQ", "USD", "equity"),
-    ("CRYPTO:BTCUSDT", "Bitcoin / USDT", "CRYPTO", "BINANCE", "USDT", "crypto"),
-    ("CRYPTO:ETHUSDT", "Ethereum / USDT", "CRYPTO", "BINANCE", "USDT", "crypto"),
+    ("CRYPTO:BTCUSDT", "Bitcoin / USDT", "CRYPTO", "OKX", "USDT", "crypto"),
+    ("CRYPTO:ETHUSDT", "Ethereum / USDT", "CRYPTO", "OKX", "USDT", "crypto"),
+    ("POLY:PREDICTION", "Polymarket (see /v1/prediction)", "POLY", "POLYMARKET", "USD", "prediction"),
 ]
 
 

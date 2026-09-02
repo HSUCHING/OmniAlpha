@@ -1,10 +1,11 @@
-"""Market data: quotes (Redis + adapter refresh) and bars."""
+"""Market data: quotes (Redis + adapters.registry.get_adapter) and bars. No vendor URLs."""
 from __future__ import annotations
 
 import json
 import logging
 from typing import Optional
 
+from adapters.registry import get_adapter
 from contracts.schema import Bar, BarList, Quote, QuoteList, SymbolId, utc_now_iso
 from domain.redis_client import get_redis
 
@@ -38,10 +39,11 @@ def _cache_set(quote: Quote) -> None:
         log.warning("redis set failed: %s", e)
 
 
-def _refresh_cn(sid: SymbolId) -> Quote:
-    from adapters.cn_watch import fetch_quote
-
-    q = fetch_quote(sid)
+def _refresh(sid: SymbolId) -> Quote:
+    adapter = get_adapter(sid.prefix)
+    if adapter is None:
+        raise LookupError(f"market '{sid.prefix}' quote adapter not registered")
+    q = adapter.fetch_quote(sid)
     _cache_set(q)
     return q
 
@@ -54,52 +56,53 @@ def get_quotes(symbols: list[SymbolId]) -> QuoteList:
         if cached:
             items.append(cached)
             continue
-        if sid.prefix == "CN":
-            try:
-                items.append(_refresh_cn(sid))
-            except Exception as e:
-                log.exception("quote refresh failed for %s", sid.canonical)
-                warnings.append(f"{sid.canonical}: refresh failed: {e}")
-        else:
-            warnings.append(f"{sid.canonical}: market '{sid.prefix}' quote adapter not implemented in phase-1")
+        adapter = get_adapter(sid.prefix)
+        if adapter is None:
+            warnings.append(f"{sid.canonical}: market '{sid.prefix}' quote adapter not registered")
+            continue
+        try:
+            items.append(_refresh(sid))
+        except Exception as e:
+            log.exception("quote refresh failed for %s", sid.canonical)
+            warnings.append(f"{sid.canonical}: refresh failed: {e}")
     return QuoteList(items=items, warnings=warnings)
 
 
 def get_bars(sid: SymbolId, interval: str = "1d", limit: int = 5) -> BarList:
     limit = max(1, min(limit, 500))
     warnings: list[str] = []
-    if sid.prefix == "CN":
-        try:
-            from adapters.cn_watch import fetch_bars
-
-            bars = fetch_bars(sid, interval=interval, limit=limit)
-            if bars:
-                return BarList(items=bars, warnings=warnings)
-            warnings.append(f"{sid.canonical}: tencent kline empty; trying synthetic from last quote")
-        except Exception as e:
-            log.exception("bars fetch failed for %s", sid.canonical)
-            warnings.append(f"{sid.canonical}: kline failed: {e}; trying synthetic")
-        # fallback synthetic from last quote
-        ql = get_quotes([sid])
-        if ql.items:
-            q = ql.items[0]
-            bar = Bar(
-                symbol=sid.canonical,
-                interval=interval,
-                open_time=q.as_of,
-                open=q.open or q.last,
-                high=q.high or q.last,
-                low=q.low or q.last,
-                close=q.last,
-                volume=q.volume,
-                as_of=utc_now_iso(),
-                source="synthetic:last_quote",
-                stale=True,
-            )
-            warnings.append("bars are synthetic from last quote")
-            return BarList(items=[bar], warnings=warnings)
-        warnings.append("no quote available for synthetic bars")
+    adapter = get_adapter(sid.prefix)
+    if adapter is None:
+        warnings.append(f"{sid.canonical}: market '{sid.prefix}' bars adapter not registered")
         return BarList(items=[], warnings=warnings)
 
-    warnings.append(f"{sid.canonical}: market '{sid.prefix}' bars not implemented in phase-1")
+    try:
+        bars = adapter.fetch_bars(sid, interval=interval, limit=limit)
+        if bars:
+            return BarList(items=bars, warnings=warnings)
+        warnings.append(f"{sid.canonical}: kline empty; trying synthetic from last quote")
+    except Exception as e:
+        log.exception("bars fetch failed for %s", sid.canonical)
+        warnings.append(f"{sid.canonical}: kline failed: {e}; trying synthetic")
+
+    ql = get_quotes([sid])
+    if ql.items:
+        q = ql.items[0]
+        bar = Bar(
+            symbol=sid.canonical,
+            interval=interval,
+            open_time=q.as_of,
+            open=q.open or q.last,
+            high=q.high or q.last,
+            low=q.low or q.last,
+            close=q.last,
+            volume=q.volume,
+            as_of=utc_now_iso(),
+            source="synthetic:last_quote",
+            stale=True,
+        )
+        warnings.append("bars are synthetic from last quote")
+        return BarList(items=[bar], warnings=warnings)
+    warnings.extend(ql.warnings)
+    warnings.append("no quote available for synthetic bars")
     return BarList(items=[], warnings=warnings)

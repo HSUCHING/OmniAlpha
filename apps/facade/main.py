@@ -1,4 +1,4 @@
-"""Data Facade — FastAPI /v1 + FastMCP /mcp."""
+"""OmniAlpha Facade — FastAPI /v1 + FastMCP /mcp."""
 from __future__ import annotations
 
 import json
@@ -11,19 +11,27 @@ from typing import Optional
 from fastapi import Depends, FastAPI, Header, HTTPException, Query, Request, Response
 from fastapi.responses import JSONResponse
 
+from apps.facade.wiring import setup_providers
 from contracts.schema import (
     BarList,
+    CapabilitiesResponse,
+    CapabilityFlags,
     HealthResponse,
     InstrumentList,
     QuoteList,
+    ReadyResponse,
 )
 from domain import db
+from domain.health import check_ready
 from domain.id import parse_symbol, parse_symbols
 from domain.marketdata import get_bars, get_quotes
+from domain.prediction import get_market as pred_get_market
+from domain.prediction import list_markets as pred_list_markets
+from domain.meta import get_capabilities_matrix
 from domain.reference import list_instruments, search_instruments
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(name)s %(message)s")
-log = logging.getLogger("facade")
+log = logging.getLogger("omnialpha")
 
 API_KEY = os.getenv("DATA_FACADE_API_KEY", "").strip()
 FASTMCP_AVAILABLE = False
@@ -34,7 +42,7 @@ try:
     from fastmcp import FastMCP
     from apps.facade.mcp_tools import register_tools
 
-    mcp = FastMCP("data-facade")
+    mcp = FastMCP("omnialpha")
     register_tools(mcp)
     mcp_app = mcp.http_app(path="/")
     FASTMCP_AVAILABLE = True
@@ -52,8 +60,8 @@ except Exception as e:
 
 @asynccontextmanager
 async def app_lifespan(app: FastAPI):
+    setup_providers()
     log.info("initializing database...")
-    # retry a few times for compose race
     last_err = None
     for i in range(15):
         try:
@@ -86,9 +94,9 @@ def _build_lifespan():
 
 
 app = FastAPI(
-    title="Data Facade",
+    title="OmniAlpha",
     version="0.1.0",
-    description="L0–L5 finance data product skeleton (phase-1)",
+    description="Unified multi-market data facade (CN/US/CRYPTO/POLY)",
     lifespan=_build_lifespan(),
 )
 
@@ -121,7 +129,74 @@ async def access_log_middleware(request: Request, call_next):
 
 @app.get("/healthz", response_model=HealthResponse, tags=["ops"])
 def healthz():
-    return HealthResponse(status="ok")
+    return HealthResponse(status="ok", service="omnialpha", version="0.1.0")
+
+
+@app.get("/health/ready", response_model=ReadyResponse, tags=["ops"])
+def health_ready():
+    raw = check_ready()
+    ok = bool(raw.get("postgres")) and bool(raw.get("redis"))
+    failed = raw.get("failed") or []
+    details = raw.get("details") or {}
+    detail = "; ".join(f"{k}: {details[k]}" for k in failed if k in details) or None
+    body = ReadyResponse(
+        status="ok" if ok else "degraded",
+        postgres=bool(raw.get("postgres")),
+        redis=bool(raw.get("redis")),
+        service="omnialpha",
+        detail=detail,
+    )
+    if not ok:
+        return JSONResponse(status_code=503, content=body.model_dump())
+    return body
+
+
+def _capabilities() -> CapabilitiesResponse:
+    """Build API response from truthful domain matrix (POLY/prediction not advertised)."""
+    m = get_capabilities_matrix()
+    markets: dict[str, CapabilityFlags] = {}
+    provider_by_market = {
+        "CN": "tencent",
+        "US": "yfinance",
+        "CRYPTO": "okx",
+        "POLY": None,
+    }
+    notes_by_market = {
+        "CN": "A-share quotes/bars via Tencent",
+        "US": "US equities quotes/bars via Yahoo Finance",
+        "CRYPTO": "Spot quotes/bars via OKX public REST (httpx)",
+        "POLY": "prediction separate / not phase-1; watch/query unsupported",
+    }
+    for mkt, caps in m["matrix"].items():
+        watch = caps["watch"]["status"] == "implemented"
+        query = caps["query"]["status"] == "implemented"
+        markets[mkt] = CapabilityFlags(
+            watch=watch,
+            query=query,
+            analyze=False,
+            screen=False,
+            prediction=False,
+            provider=provider_by_market.get(mkt) if (watch or query) else None,
+            notes=notes_by_market.get(mkt),
+        )
+    matrix = []
+    for mkt, flags in markets.items():
+        for cap in ("watch", "query", "analyze", "screen", "prediction"):
+            implemented = bool(getattr(flags, cap))
+            matrix.append(
+                {
+                    "market": mkt,
+                    "capability": cap,
+                    "implemented": implemented,
+                    "provider": flags.provider if implemented else None,
+                }
+            )
+    return CapabilitiesResponse(phase="phase1", markets=markets, matrix=matrix)
+
+
+@app.get("/v1/meta/capabilities", response_model=CapabilitiesResponse, tags=["meta"])
+def v1_meta_capabilities():
+    return _capabilities()
 
 
 @app.get("/v1/instruments", response_model=InstrumentList, tags=["reference"], dependencies=[Depends(require_api_key)])
@@ -161,6 +236,60 @@ def v1_bars(
     return get_bars(sid, interval=interval, limit=limit)
 
 
+def _phase1_not_implemented(capability: str, detail: str):
+    return JSONResponse(
+        status_code=501,
+        content={
+            "detail": detail,
+            "capability": capability,
+            "status": "unsupported",
+        },
+    )
+
+
+@app.get("/v1/analyze", tags=["analytics"], dependencies=[Depends(require_api_key)])
+def v1_analyze():
+    return _phase1_not_implemented("analyze", "analyze not implemented in phase-1")
+
+
+@app.get("/v1/analytics/indicators", tags=["analytics"], dependencies=[Depends(require_api_key)])
+def v1_analytics_indicators():
+    return _phase1_not_implemented("analyze", "analytics not implemented in phase-1")
+
+
+@app.get("/v1/screen", tags=["screener"], dependencies=[Depends(require_api_key)])
+def v1_screen():
+    return _phase1_not_implemented("screen", "screen not implemented in phase-1")
+
+
+@app.get("/v1/screener/run", tags=["screener"], dependencies=[Depends(require_api_key)])
+def v1_screener_run(market: Optional[str] = Query(None)):
+    _ = market
+    return _phase1_not_implemented("screen", "screener not implemented in phase-1")
+
+
+@app.get("/v1/prediction/events", tags=["prediction"], dependencies=[Depends(require_api_key)])
+def v1_prediction_events():
+    return _phase1_not_implemented("prediction", "prediction not implemented in phase-1")
+
+
+@app.get("/v1/prediction/markets", tags=["prediction"], dependencies=[Depends(require_api_key)])
+def v1_prediction_markets():
+    return _phase1_not_implemented("prediction", "prediction not implemented in phase-1")
+
+
+@app.get("/v1/prediction/markets/{market_id}", tags=["prediction"], dependencies=[Depends(require_api_key)])
+def v1_prediction_market(market_id: str):
+    _ = market_id
+    return _phase1_not_implemented("prediction", "prediction not implemented in phase-1")
+
+
+@app.get("/v1/prediction/quote", tags=["prediction"], dependencies=[Depends(require_api_key)])
+def v1_prediction_quote(market_id: Optional[str] = Query(None)):
+    _ = market_id
+    return _phase1_not_implemented("prediction", "prediction not implemented in phase-1")
+
+
 if mcp_app is not None:
     app.mount("/mcp", mcp_app)
 else:
@@ -171,6 +300,7 @@ else:
         return JSONResponse(
             {
                 "status": "stub",
+                "service": "omnialpha",
                 "detail": "fastmcp not installed; install fastmcp for real MCP tools",
                 "tools": ["search_instruments", "get_quotes", "get_bars"],
             }

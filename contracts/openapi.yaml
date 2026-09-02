@@ -1,7 +1,7 @@
 openapi: 3.1.0
 info:
-  title: Data Facade
-  version: 0.1.0
+  title: OmniAlpha Data Facade
+  version: 0.2.0
   description: |
     L0–L5 finance data product (phase-1).
     Markets are query params / symbol prefixes (CN:, US:, CRYPTO:, POLY:), never path segments.
@@ -10,10 +10,24 @@ servers:
 paths:
   /healthz:
     get:
-      summary: Health check
+      summary: Liveness
       responses:
         "200":
           description: OK
+  /health/ready:
+    get:
+      summary: Readiness (Postgres + Redis)
+      responses:
+        "200":
+          description: Ready
+        "503":
+          description: Dependency unavailable
+  /v1/meta/capabilities:
+    get:
+      summary: Market × capability matrix
+      responses:
+        "200":
+          description: Capabilities matrix (analyze/screen unsupported in phase-1)
   /v1/instruments:
     get:
       summary: List / filter instruments
@@ -35,6 +49,25 @@ paths:
       responses:
         "200":
           description: Instrument list
+  /v1/instruments/search:
+    get:
+      summary: Search instruments by text
+      parameters:
+        - name: q
+          in: query
+          required: true
+          schema: { type: string, minLength: 1 }
+        - name: market
+          in: query
+          schema: { type: string, enum: [CN, US, CRYPTO, POLY] }
+        - name: limit
+          in: query
+          schema: { type: integer, default: 20 }
+      security:
+        - ApiKeyAuth: []
+      responses:
+        "200":
+          description: Instrument list
   /v1/quotes:
     get:
       summary: Get quotes
@@ -43,7 +76,7 @@ paths:
           in: query
           required: true
           schema: { type: string }
-          description: "Comma-separated e.g. CN:600519"
+          description: "Comma-separated e.g. CN:600519,US:AAPL,CRYPTO:BTCUSDT,POLY:{id}"
       security:
         - ApiKeyAuth: []
       responses:
@@ -68,6 +101,71 @@ paths:
       responses:
         "200":
           description: Bar list
+  /v1/analyze:
+    get:
+      summary: Analytics (phase-1 stub)
+      security:
+        - ApiKeyAuth: []
+      responses:
+        "501":
+          description: Not implemented in phase-1
+  /v1/analytics/indicators:
+    get:
+      summary: Analytics indicators (phase-1 stub)
+      security:
+        - ApiKeyAuth: []
+      responses:
+        "501":
+          description: Not implemented in phase-1
+  /v1/screen:
+    get:
+      summary: Screener (phase-1 stub)
+      security:
+        - ApiKeyAuth: []
+      responses:
+        "501":
+          description: Not implemented in phase-1
+  /v1/screener/run:
+    get:
+      summary: Screener run (phase-1 stub)
+      parameters:
+        - name: market
+          in: query
+          schema: { type: string }
+      security:
+        - ApiKeyAuth: []
+      responses:
+        "501":
+          description: Not implemented in phase-1
+  /v1/prediction/events:
+    get:
+      summary: List prediction events/markets
+      security:
+        - ApiKeyAuth: []
+      responses:
+        "200":
+          description: Prediction list
+  /v1/prediction/markets:
+    get:
+      summary: List prediction markets
+      security:
+        - ApiKeyAuth: []
+      responses:
+        "200":
+          description: Prediction markets
+  /v1/prediction/quotes:
+    get:
+      summary: Prediction market quote by id
+      parameters:
+        - name: market_id
+          in: query
+          required: true
+          schema: { type: string }
+      security:
+        - ApiKeyAuth: []
+      responses:
+        "200":
+          description: Prediction quote
 components:
   securitySchemes:
     ApiKeyAuth:

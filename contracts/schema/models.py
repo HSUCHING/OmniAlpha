@@ -2,12 +2,13 @@
 from __future__ import annotations
 
 from datetime import datetime, timezone
-from typing import Annotated, Literal, Optional
+from typing import Literal, Optional
 
-from pydantic import BaseModel, Field, field_validator
+from pydantic import BaseModel, Field
 
 KNOWN_PREFIXES = ("CN", "US", "CRYPTO", "POLY")
 MarketPrefix = Literal["CN", "US", "CRYPTO", "POLY"]
+CapabilityName = Literal["watch", "query", "analyze", "screen"]
 
 
 def utc_now_iso() -> str:
@@ -88,5 +89,36 @@ class BarList(BaseModel):
 
 class HealthResponse(BaseModel):
     status: str
-    service: str = "data-facade"
+    service: str = "omnialpha"
     version: str = "0.1.0"
+
+
+class CapabilityFlags(BaseModel):
+    watch: bool = False
+    query: bool = False
+    analyze: bool = False
+    screen: bool = False
+    prediction: bool = False
+    provider: Optional[str] = None
+    notes: Optional[str] = None
+
+
+class CapabilitiesResponse(BaseModel):
+    phase: str = "phase1"
+    markets: dict[str, CapabilityFlags]
+    matrix: list[dict]
+
+
+class ReadyResponse(BaseModel):
+    status: str
+    postgres: bool
+    redis: bool
+    service: str = "omnialpha"
+    detail: Optional[str] = None
+
+
+# Backward-compatible alias
+ReadyCheck = ReadyResponse
+
+SERVICE_NAME = "omnialpha"
+SERVICE_VERSION = "0.2.0"
