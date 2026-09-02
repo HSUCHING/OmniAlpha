@@ -23,3 +23,7 @@
 
 - 以 **`e02ef4c`** 为验收对象：功能场景 + F1/F2/F3 + Scalar = **PASS**（与 bb4c174 轮一致，无功能回归）。
 - F4 契约差分需 **rebuild 现网后再验**；此前 bb4c174 轮 F4 PASS 对应旧 ErrorBody 枚举，不能直接算作 e02ef4c F4 闭合。
+
+## F4 补测闭合（105f5b3 rebuild）
+
+独立核对见 `eval/f4_recheck_105f5b3.md`：**F4 PASS**。501=`unsupported`，422 FOO=`invalid_id`，401 双轨 `detail`；旧 ErrorBody 码已消失。
