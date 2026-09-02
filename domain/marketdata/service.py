@@ -1,12 +1,12 @@
-"""Market data: quotes (Redis + adapters.registry.get_adapter) and bars. No vendor URLs."""
+"""Market data: quotes (Redis + domain ports) and bars. No vendor URLs / adapter imports."""
 from __future__ import annotations
 
 import json
 import logging
 from typing import Optional
 
-from adapters.registry import get_adapter
 from contracts.schema import Bar, BarList, Quote, QuoteList, SymbolId, utc_now_iso
+from domain.marketdata.ports import get_provider
 from domain.redis_client import get_redis
 
 log = logging.getLogger(__name__)
@@ -40,7 +40,7 @@ def _cache_set(quote: Quote) -> None:
 
 
 def _refresh(sid: SymbolId) -> Quote:
-    adapter = get_adapter(sid.prefix)
+    adapter = get_provider(sid.prefix)
     if adapter is None:
         raise LookupError(f"market '{sid.prefix}' quote adapter not registered")
     q = adapter.fetch_quote(sid)
@@ -56,9 +56,11 @@ def get_quotes(symbols: list[SymbolId]) -> QuoteList:
         if cached:
             items.append(cached)
             continue
-        adapter = get_adapter(sid.prefix)
+        adapter = get_provider(sid.prefix)
         if adapter is None:
-            warnings.append(f"{sid.canonical}: market '{sid.prefix}' quote adapter not registered")
+            warnings.append(
+                f"{sid.canonical}: market '{sid.prefix}' quote adapter not registered"
+            )
             continue
         try:
             items.append(_refresh(sid))
@@ -71,7 +73,7 @@ def get_quotes(symbols: list[SymbolId]) -> QuoteList:
 def get_bars(sid: SymbolId, interval: str = "1d", limit: int = 5) -> BarList:
     limit = max(1, min(limit, 500))
     warnings: list[str] = []
-    adapter = get_adapter(sid.prefix)
+    adapter = get_provider(sid.prefix)
     if adapter is None:
         warnings.append(f"{sid.canonical}: market '{sid.prefix}' bars adapter not registered")
         return BarList(items=[], warnings=warnings)

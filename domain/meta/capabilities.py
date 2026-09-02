@@ -5,7 +5,6 @@ from typing import Any, Literal
 
 CapabilityStatus = Literal["implemented", "partial", "unsupported"]
 
-# Eval scenarios use watch/query/analyze/screen; also expose instruments/quotes/bars aliases in items notes.
 CAPABILITIES = ("watch", "query", "analyze", "screen")
 MARKETS = ("CN", "US", "CRYPTO", "POLY")
 
@@ -33,14 +32,12 @@ def get_capabilities_matrix() -> dict[str, Any]:
         },
         "POLY": {
             "watch": {
-                "status": "partial",
-                "source": "polymarket",
-                "notes": "POLY:{id} Quote.last=probability via /v1/quotes; bars empty/synthetic",
+                "status": "unsupported",
+                "notes": "prediction separate / not phase-1; do not use equity Quote/Bar",
             },
             "query": {
-                "status": "implemented",
-                "source": "postgres",
-                "notes": "instruments seed; thin /v1/prediction/* helpers exist but prediction product not advertised",
+                "status": "unsupported",
+                "notes": "instruments seed may exist in PG; market product query unsupported in phase-1",
             },
             "analyze": {"status": "unsupported"},
             "screen": {"status": "unsupported"},
@@ -59,12 +56,11 @@ def get_capabilities_matrix() -> dict[str, Any]:
                     "notes": cell.get("notes"),
                 }
             )
-    # Extra detail: POLY instruments seed may exist but watch/query product = unsupported
     detail = {
         "CN": {"instruments": True, "quotes": True, "bars": True, "prediction": False},
         "US": {"instruments": True, "quotes": True, "bars": True, "prediction": False},
         "CRYPTO": {"instruments": True, "quotes": True, "bars": True, "prediction": False},
-        "POLY": {"instruments": True, "quotes": True, "bars": False, "prediction": False},
+        "POLY": {"instruments": True, "quotes": False, "bars": False, "prediction": False},
     }
     return {
         "version": "0.2.0",
@@ -76,7 +72,7 @@ def get_capabilities_matrix() -> dict[str, Any]:
         "detail": detail,
         "notes": [
             "analyze and screen are unsupported; HTTP routes return 501",
-            "POLY Quote.last is outcome probability in [0,1] (source=polymarket); prediction product not advertised",
+            "POLY watch/query/prediction unsupported in phase-1 (prediction path independent)",
             "CRYPTO watch source is okx via httpx (not ccxt)",
         ],
     }

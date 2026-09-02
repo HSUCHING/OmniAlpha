@@ -25,8 +25,6 @@ from domain import db
 from domain.health import check_ready
 from domain.id import parse_symbol, parse_symbols
 from domain.marketdata import get_bars, get_quotes
-from domain.prediction import get_market as pred_get_market
-from domain.prediction import list_markets as pred_list_markets
 from domain.meta import get_capabilities_matrix
 from domain.reference import list_instruments, search_instruments
 
