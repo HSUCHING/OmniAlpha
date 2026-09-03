@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # Allowlist deploy: facade + scalar only. Do not touch postgres/redis volumes.
-# Uses a disposable worktree so we never rewrite the live checkout (webhook/host scripts).
+# Disposable worktree avoids rewriting the live checkout (webhook host process).
 set -euo pipefail
 
 TAG="${1:-}"
@@ -12,10 +12,9 @@ fi
 LIVE_ROOT="$(cd "$(dirname "$0")/../.." && pwd)"
 WORK_ROOT="${DEPLOY_WORK_ROOT:-/tmp/omnialpha-deploy}"
 TREE="$WORK_ROOT/$TAG"
-# Keep updating the existing stack (omnialpha-*), not a new project named after the worktree dir.
+# Pin project: worktree dirname would otherwise spawn a second stack.
+# Pass -p on CLI — sudo drops COMPOSE_PROJECT_NAME by default.
 PROJECT="${COMPOSE_PROJECT_NAME:-omnialpha}"
-# Host box user is not in docker group; passwordless sudo is available.
-DOCKER=(sudo -n docker)
 
 echo "[deploy] live=$LIVE_ROOT tag=$TAG worktree=$TREE project=$PROJECT"
 
@@ -33,11 +32,12 @@ cleanup() {
 trap cleanup EXIT
 
 cd "$TREE"
-# Fixed allowlist — webhook must NOT choose services
 SERVICES=(facade scalar)
-echo "[deploy] building: ${SERVICES[*]}"
-COMPOSE_PROJECT_NAME="$PROJECT" "${DOCKER[@]}" compose build "${SERVICES[@]}"
+DOCKER=(sudo -n docker)
+
+echo "[deploy] building: ${SERVICES[*]} (-p $PROJECT)"
+"${DOCKER[@]}" compose -p "$PROJECT" build "${SERVICES[@]}"
 echo "[deploy] up -d: ${SERVICES[*]} (volumes untouched)"
-COMPOSE_PROJECT_NAME="$PROJECT" "${DOCKER[@]}" compose up -d "${SERVICES[@]}"
+"${DOCKER[@]}" compose -p "$PROJECT" up -d "${SERVICES[@]}"
 echo "[deploy] done"
-COMPOSE_PROJECT_NAME="$PROJECT" "${DOCKER[@]}" compose ps "${SERVICES[@]}" || true
+"${DOCKER[@]}" compose -p "$PROJECT" ps "${SERVICES[@]}" || true
