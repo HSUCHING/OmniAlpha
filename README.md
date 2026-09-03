@@ -201,3 +201,38 @@ docker compose logs -f facade
 ## Evaluation
 
 See [`Eval.md`](./Eval.md) and `eval/` for architecture/implementation acceptance gates (G0–G5).
+
+## 自动部署（deploy-* tag → webhook）
+
+硬约束：独立服务 **:8702**；**不进** facade/domain；仅更新 **facade + scalar**；HMAC timing-safe；tag 必须 `deploy-*`；webhook **不能**选服务名。
+
+### GitHub Secrets
+
+| Secret | 必填 | 说明 |
+|--------|------|------|
+| `DEPLOY_WEBHOOK_SECRET` | 是 | 与本机 webhook 共享的 HMAC 密钥 |
+| `DEPLOY_WEBHOOK_URL` | 否 | 默认 `https://deploy.metacognix.xyz/hooks/deploy` |
+
+签名头：`X-Deploy-Signature: sha256=<hmac-sha256-hex(body)>`
+
+### Cloudflare Tunnel
+
+Remix 需在 Tunnel 增加：`deploy.metacognix.xyz` → `http://127.0.0.1:8702`
+
+### 本机启动
+
+```bash
+# .env 中设置 DEPLOY_WEBHOOK_SECRET
+docker compose up -d --build deploy-webhook
+curl -sS http://127.0.0.1:8702/healthz
+```
+
+### 触发
+
+```bash
+git tag deploy-YYYYMMDD-1
+git push origin deploy-YYYYMMDD-1
+```
+
+Workflow 模板 `deploy/ci/deploy.yml`（需复制到 `.github/workflows/deploy.yml`；push workflow 需 GitHub `workflow` scope） 会在 push `deploy-*` tag 时向 webhook POST；接收器验签后执行 `deploy/scripts/deploy.sh <tag>`（`git fetch/checkout` + `docker compose build/up facade scalar`，**不动** PG/Redis 卷）。
+

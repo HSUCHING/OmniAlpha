@@ -53,5 +53,24 @@ services:
       - ./deploy/scalar/nginx.conf:/etc/nginx/conf.d/default.conf:ro
     restart: unless-stopped
 
+
+  deploy-webhook:
+    # Independent of facade/domain. HMAC receiver for deploy-* tags only.
+    build:
+      context: .
+      dockerfile: deploy/webhook/Dockerfile
+    ports:
+      - "8702:8702"
+    environment:
+      DEPLOY_WEBHOOK_SECRET: ${DEPLOY_WEBHOOK_SECRET:-}
+      DEPLOY_REPO_DIR: /repo
+      DEPLOY_SCRIPT: /repo/deploy/scripts/deploy.sh
+      DEPLOY_TIMEOUT_SEC: ${DEPLOY_TIMEOUT_SEC:-900}
+    volumes:
+      - ./:/repo
+      - /var/run/docker.sock:/var/run/docker.sock
+    working_dir: /repo
+    restart: unless-stopped
+
 volumes:
   facade_pg:
