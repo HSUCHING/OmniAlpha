@@ -17,9 +17,11 @@ git checkout -f "$TAG"
 
 # Fixed allowlist — webhook must NOT choose services
 SERVICES=(facade scalar)
+# Host box user is not in docker group; passwordless sudo is available.
+DOCKER=(sudo -n docker)
 echo "[deploy] building: ${SERVICES[*]}"
-docker compose build "${SERVICES[@]}"
+"${DOCKER[@]}" compose build "${SERVICES[@]}"
 echo "[deploy] up -d: ${SERVICES[*]} (volumes untouched)"
-docker compose up -d "${SERVICES[@]}"
+"${DOCKER[@]}" compose up -d "${SERVICES[@]}"
 echo "[deploy] done"
-docker compose ps "${SERVICES[@]}" || true
+"${DOCKER[@]}" compose ps "${SERVICES[@]}" || true
