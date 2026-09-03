@@ -29,7 +29,10 @@ jobs:
           BODY=$(printf '{"tag":"%s","ref":"%s","sha":"%s","repository":"%s"}' \
             "$TAG" "$GITHUB_REF" "$GITHUB_SHA" "$GITHUB_REPOSITORY")
           SIG=$(printf '%s' "$BODY" | openssl dgst -sha256 -hmac "$DEPLOY_WEBHOOK_SECRET" | awk '{print $2}')
-          curl -fsS -X POST "$URL" \
+          RESP=$(curl -sS -w "\nHTTP_CODE:%{http_code}" -X POST "$URL" \
             -H "Content-Type: application/json" \
             -H "X-Deploy-Signature: sha256=${SIG}" \
-            -d "$BODY"
+            -d "$BODY" --max-time 900) || true
+          echo "$RESP"
+          CODE=$(printf '%s' "$RESP" | sed -n 's/^HTTP_CODE://p' | tail -1)
+          test "$CODE" = "200"
