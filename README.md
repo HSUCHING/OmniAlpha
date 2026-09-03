@@ -219,12 +219,21 @@ See [`Eval.md`](./Eval.md) and `eval/` for architecture/implementation acceptanc
 
 Remix 需在 Tunnel 增加：`deploy.metacognix.xyz` → `http://127.0.0.1:8702`
 
-### 本机启动
+### 本机启动（推荐：host 进程）
+
+Tunnel 已指向 `127.0.0.1:8702` 时，优先用 host uvicorn（免镜像构建 / apt 502）：
 
 ```bash
 # .env 中设置 DEPLOY_WEBHOOK_SECRET
-docker compose up -d --build deploy-webhook
+./deploy/scripts/run-webhook-host.sh
+# 或后台：nohup ./deploy/scripts/run-webhook-host.sh >/tmp/deploy-webhook.log 2>&1 &
 curl -sS http://127.0.0.1:8702/healthz
+```
+
+可选：compose 镜像（`deploy/webhook/Dockerfile` 基于 `docker:27-cli` + apk，**不再走 apt**）：
+
+```bash
+docker compose up -d --build deploy-webhook
 ```
 
 ### 触发
