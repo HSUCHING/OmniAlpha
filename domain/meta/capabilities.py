@@ -34,20 +34,23 @@ def get_capabilities_matrix() -> dict[str, Any]:
             "prediction": {"status": "unsupported"},
         },
         "POLY": {
+            # Product口径: Polymarket = 预测*市场*行情 → watch/query。
+            # capability "prediction" 留给自研模型预测，不表示交易所行情。
             "watch": {
-                "status": "unsupported",
-                "notes": "POLY is prediction-only; do not use equity Quote/Bar path",
+                "status": "implemented",
+                "source": "polymarket-gamma",
+                "notes": "market odds via /v1/prediction/quote (Event/Market/Outcome; not equity Quote/Bar)",
             },
             "query": {
-                "status": "unsupported",
-                "notes": "instruments seed may exist in PG; market product query unsupported",
+                "status": "implemented",
+                "source": "polymarket-gamma",
+                "notes": "search/list markets via /v1/prediction/markets (path name legacy; semantics=query)",
             },
             "analyze": {"status": "unsupported"},
             "screen": {"status": "unsupported"},
             "prediction": {
-                "status": "implemented",
-                "source": "polymarket-gamma",
-                "notes": "/v1/prediction/* + MCP Prediction* tools; not via /v1/quotes|/v1/bars",
+                "status": "unsupported",
+                "notes": "reserved for first-party model forecasts; Polymarket venue data is watch/query",
             },
         },
     }
@@ -68,10 +71,10 @@ def get_capabilities_matrix() -> dict[str, Any]:
         "CN": {"instruments": True, "quotes": True, "bars": True, "prediction": False},
         "US": {"instruments": True, "quotes": True, "bars": True, "prediction": False},
         "CRYPTO": {"instruments": True, "quotes": True, "bars": True, "prediction": False},
-        "POLY": {"instruments": True, "quotes": False, "bars": False, "prediction": True},
+        "POLY": {"instruments": False, "quotes": False, "bars": False, "markets": True, "odds": True, "prediction": False},
     }
     return {
-        "version": "0.2.0",
+        "version": "0.2.1",
         "phase": "phase1",
         "markets": list(MARKETS),
         "capabilities": list(CAPABILITIES),
@@ -80,7 +83,7 @@ def get_capabilities_matrix() -> dict[str, Any]:
         "detail": detail,
         "notes": [
             "analyze and screen are unsupported; HTTP routes return 501",
-            "POLY prediction implemented via /v1/prediction/* (source=polymarket-gamma); equity watch/query unsupported",
+            "POLY watch/query = Polymarket venue data via /v1/prediction/* (Gamma); capability prediction reserved for model forecasts",
             "CRYPTO watch source is okx via httpx (not ccxt)",
         ],
     }

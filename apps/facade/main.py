@@ -207,7 +207,7 @@ def health_ready():
 
 
 def _capabilities() -> CapabilitiesResponse:
-    """Build API response from truthful domain matrix (POLY prediction via Gamma)."""
+    """Build API response from truthful domain matrix (POLY watch/query via Polymarket)."""
     m = get_capabilities_matrix()
     markets: dict[str, CapabilityFlags] = {}
     provider_by_market = {
@@ -220,7 +220,7 @@ def _capabilities() -> CapabilitiesResponse:
         "CN": "A-share quotes/bars via Tencent",
         "US": "US equities quotes/bars via Yahoo Finance",
         "CRYPTO": "Spot quotes/bars via OKX public REST (httpx)",
-        "POLY": "prediction via /v1/prediction/* (Gamma); equity watch/query unsupported",
+        "POLY": "Polymarket venue watch/query via /v1/prediction/* (Gamma); prediction=model forecasts TBD",
     }
     for mkt, caps in m["matrix"].items():
         watch = caps["watch"]["status"] == "implemented"
