@@ -1,0 +1,181 @@
+{
+  "$defs": {
+    "PredictionMarket": {
+      "properties": {
+        "as_of": {
+          "description": "UTC ISO8601 timestamp when data was observed/produced",
+          "title": "As Of",
+          "type": "string"
+        },
+        "source": {
+          "description": "Upstream or synthetic source identifier",
+          "title": "Source",
+          "type": "string"
+        },
+        "stale": {
+          "default": false,
+          "description": "True if served past preferred freshness",
+          "title": "Stale",
+          "type": "boolean"
+        },
+        "id": {
+          "title": "Id",
+          "type": "string"
+        },
+        "symbol": {
+          "description": "Canonical POLY:{id}",
+          "title": "Symbol",
+          "type": "string"
+        },
+        "question": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Question"
+        },
+        "slug": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Slug"
+        },
+        "active": {
+          "anyOf": [
+            {
+              "type": "boolean"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Active"
+        },
+        "closed": {
+          "anyOf": [
+            {
+              "type": "boolean"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Closed"
+        },
+        "outcomes": {
+          "items": {
+            "$ref": "#/$defs/PredictionOutcome"
+          },
+          "title": "Outcomes",
+          "type": "array"
+        },
+        "volume": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Volume"
+        },
+        "liquidity": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Liquidity"
+        },
+        "end_date": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "End Date"
+        }
+      },
+      "required": [
+        "as_of",
+        "source",
+        "id",
+        "symbol"
+      ],
+      "title": "PredictionMarket",
+      "type": "object"
+    },
+    "PredictionOutcome": {
+      "description": "Single outcome probability in [0, 1].",
+      "properties": {
+        "name": {
+          "title": "Name",
+          "type": "string"
+        },
+        "price": {
+          "description": "Implied probability in [0, 1]",
+          "maximum": 1.0,
+          "minimum": 0.0,
+          "title": "Price",
+          "type": "number"
+        }
+      },
+      "required": [
+        "name",
+        "price"
+      ],
+      "title": "PredictionOutcome",
+      "type": "object"
+    }
+  },
+  "properties": {
+    "items": {
+      "items": {
+        "$ref": "#/$defs/PredictionMarket"
+      },
+      "title": "Items",
+      "type": "array"
+    },
+    "total": {
+      "title": "Total",
+      "type": "integer"
+    },
+    "warnings": {
+      "items": {
+        "type": "string"
+      },
+      "title": "Warnings",
+      "type": "array"
+    }
+  },
+  "required": [
+    "items",
+    "total"
+  ],
+  "title": "PredictionMarketList",
+  "type": "object",
+  "$comment": "phase1 export from contracts.schema.models.PredictionMarketList; separate from equity Quote/Bar"
+}

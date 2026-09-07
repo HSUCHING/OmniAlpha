@@ -1,0 +1,109 @@
+{
+  "$defs": {
+    "PredictionOutcome": {
+      "description": "Single outcome probability in [0, 1].",
+      "properties": {
+        "name": {
+          "title": "Name",
+          "type": "string"
+        },
+        "price": {
+          "description": "Implied probability in [0, 1]",
+          "maximum": 1.0,
+          "minimum": 0.0,
+          "title": "Price",
+          "type": "number"
+        }
+      },
+      "required": [
+        "name",
+        "price"
+      ],
+      "title": "PredictionOutcome",
+      "type": "object"
+    }
+  },
+  "description": "Prediction probability quote — not equity Quote.",
+  "properties": {
+    "as_of": {
+      "description": "UTC ISO8601 timestamp when data was observed/produced",
+      "title": "As Of",
+      "type": "string"
+    },
+    "source": {
+      "description": "Upstream or synthetic source identifier",
+      "title": "Source",
+      "type": "string"
+    },
+    "stale": {
+      "default": false,
+      "description": "True if served past preferred freshness",
+      "title": "Stale",
+      "type": "boolean"
+    },
+    "market_id": {
+      "title": "Market Id",
+      "type": "string"
+    },
+    "symbol": {
+      "title": "Symbol",
+      "type": "string"
+    },
+    "question": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Question"
+    },
+    "outcomes": {
+      "items": {
+        "$ref": "#/$defs/PredictionOutcome"
+      },
+      "title": "Outcomes",
+      "type": "array"
+    },
+    "yes_price": {
+      "anyOf": [
+        {
+          "maximum": 1.0,
+          "minimum": 0.0,
+          "type": "number"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Yes Price"
+    },
+    "no_price": {
+      "anyOf": [
+        {
+          "maximum": 1.0,
+          "minimum": 0.0,
+          "type": "number"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "No Price"
+    }
+  },
+  "required": [
+    "as_of",
+    "source",
+    "market_id",
+    "symbol"
+  ],
+  "title": "PredictionQuote",
+  "type": "object",
+  "$comment": "phase1 export from contracts.schema.models.PredictionQuote; separate from equity Quote/Bar"
+}

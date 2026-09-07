@@ -13,5 +13,19 @@
     "capability_flags": "capability_flags.json",
     "envelope": "envelope.json",
     "error": "error.json"
+  },
+  "files": [
+    "prediction_market.json",
+    "prediction_market_list.json",
+    "prediction_outcome.json",
+    "prediction_quote.json"
+  ],
+  "prediction": {
+    "note": "Prediction* independent of Quote/Bar; MCP search_prediction_markets|get_prediction_market|get_prediction_quote",
+    "http": [
+      "/v1/prediction/markets",
+      "/v1/prediction/markets/{id}",
+      "/v1/prediction/quote"
+    ]
   }
 }

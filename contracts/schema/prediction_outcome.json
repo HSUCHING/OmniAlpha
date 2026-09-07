@@ -1,0 +1,23 @@
+{
+  "description": "Single outcome probability in [0, 1].",
+  "properties": {
+    "name": {
+      "title": "Name",
+      "type": "string"
+    },
+    "price": {
+      "description": "Implied probability in [0, 1]",
+      "maximum": 1.0,
+      "minimum": 0.0,
+      "title": "Price",
+      "type": "number"
+    }
+  },
+  "required": [
+    "name",
+    "price"
+  ],
+  "title": "PredictionOutcome",
+  "type": "object",
+  "$comment": "phase1 export from contracts.schema.models.PredictionOutcome; separate from equity Quote/Bar"
+}
