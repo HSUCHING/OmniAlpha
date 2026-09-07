@@ -404,10 +404,14 @@ def v1_prediction_market(market_id: str):
     tags=["prediction"],
     dependencies=[Depends(require_api_key)],
 )
-def v1_prediction_quote(market_id: Optional[str] = Query(None, description="Polymarket market id or POLY:{id}")):
-    mid = (market_id or "").strip()
+def v1_prediction_quote(
+    market_id: Optional[str] = Query(None, description="Polymarket market id or POLY:{id}"),
+    symbol: Optional[str] = Query(None, description="Alias for market_id, e.g. POLY:559651"),
+    id: Optional[str] = Query(None, description="Alias for market_id"),
+):
+    mid = (market_id or symbol or id or "").strip()
     if not mid:
-        return _prediction_invalid_id("empty market_id")
+        return _prediction_invalid_id("empty market_id (use market_id, symbol, or id)")
     try:
         quote = prediction_svc.get_quote(mid)
     except ValueError as e:
