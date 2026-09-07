@@ -33,8 +33,22 @@ trap cleanup EXIT
 
 cd "$TREE"
 SERVICES=(facade scalar)
-DOCKER=(sudo -n docker)
+# Prefer host docker CLI (this box often uses DOCKER_HOST=tcp://127.0.0.1:2375).
+if [[ -n "${DOCKER_BIN:-}" ]]; then
+  DOCKER=("$DOCKER_BIN")
+elif command -v docker >/dev/null 2>&1; then
+  DOCKER=(docker)
+elif [[ -x /home/box/.local/bin/docker ]]; then
+  DOCKER=(/home/box/.local/bin/docker)
+elif sudo -n docker version >/dev/null 2>&1; then
+  DOCKER=(sudo -n docker)
+else
+  echo "error: docker CLI not found" >&2
+  exit 127
+fi
+export DOCKER_HOST="${DOCKER_HOST:-tcp://127.0.0.1:2375}"
 
+echo "[deploy] docker=${DOCKER[*]} DOCKER_HOST=$DOCKER_HOST"
 echo "[deploy] building: ${SERVICES[*]} (-p $PROJECT)"
 "${DOCKER[@]}" compose -p "$PROJECT" build "${SERVICES[@]}"
 echo "[deploy] up -d: ${SERVICES[*]} (volumes untouched)"
