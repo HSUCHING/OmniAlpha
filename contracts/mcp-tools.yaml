@@ -1,6 +1,5 @@
 # MCP tools mirror of /v1 (phase-1). Keep param names lockstep with OpenAPI + apps/facade/mcp_tools.py.
-# 实装工具 vs 未实现（soft）需与 capabilities / HTTP 状态对齐。
-# F3: list_prediction_events / get_prediction_quote 未注册（不在 tools 列表）；HTTP /v1/prediction/* 仍 501。
+# Prediction tools return Prediction* objects; POLY is NOT available via equity Quote/Bar.
 version: "0.2.0"
 server: data-facade
 transport: http
@@ -23,7 +22,7 @@ tools:
     params:
       - { name: symbols, type: string, required: true, description: "Comma-separated PREFIX:CODE" }
     returns: QuoteList
-    notes: "POLY equity quotes unsupported in phase-1; use prediction path when closed."
+    notes: "POLY equity quotes unsupported; use search_prediction_markets / get_prediction_quote."
 
   - name: get_bars
     phase: 1
@@ -41,7 +40,31 @@ tools:
     http: { method: GET, path: /v1/meta/capabilities }
     params: []
     returns: CapabilitiesResponse
-    notes: "Single source of truth: domain/meta."
+    notes: "Single source of truth: domain/meta. POLY.prediction=implemented (polymarket-gamma)."
 
-# 未注册（F3）：prediction MCP soft tools 已移除；勿广告为 implemented。
-# HTTP /v1/prediction/* → 501 unsupported（与 capabilities 对齐）。
+  - name: search_prediction_markets
+    phase: 1
+    status: implemented
+    http: { method: GET, path: /v1/prediction/markets }
+    params:
+      - { name: q, type: string, required: false }
+      - { name: limit, type: integer, required: false, default: 20 }
+    returns: PredictionMarketList
+    notes: "Polymarket Gamma; not equity InstrumentList."
+
+  - name: get_prediction_market
+    phase: 1
+    status: implemented
+    http: { method: GET, path: /v1/prediction/markets/{market_id} }
+    params:
+      - { name: market_id, type: string, required: true, description: "id or POLY:{id}" }
+    returns: PredictionMarket
+
+  - name: get_prediction_quote
+    phase: 1
+    status: implemented
+    http: { method: GET, path: /v1/prediction/quote }
+    params:
+      - { name: market_id, type: string, required: true }
+    returns: PredictionQuote
+    notes: "Probabilities in [0,1]; do not use get_quotes for POLY."

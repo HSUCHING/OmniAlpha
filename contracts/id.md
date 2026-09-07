@@ -13,7 +13,7 @@ PREFIX:CODE
 | `CN` | `CN:600519` | A 股；纯数字码补零到 6 位 |
 | `US` | `US:AAPL` | 美股 ticker，大写 |
 | `CRYPTO` | `CRYPTO:BTCUSDT` | 交易对，大写 |
-| `POLY` | `POLY:{market_id}` | 预测市场 id；**phase1 产品面 unsupported**（勿用 Quote/Bar 冒充概率） |
+| `POLY` | `POLY:{market_id}` | 预测市场 id；**prediction via `/v1/prediction/*`**（勿用 Quote/Bar 冒充概率） |
 
 解析入口：`domain/id/symbols.py` → `SymbolId`（`contracts/schema/models.py`）。
 
@@ -41,4 +41,9 @@ PREFIX:CODE
 
 ## 预测对象
 
-证券 schema（Instrument/Quote/Bar）与 Prediction* **分离**。Prediction* 待产品挂载且契约闭合后再升格；当前 `/v1/prediction/*` → **501**。
+证券 schema（Instrument/Quote/Bar）与 Prediction* **分离**。
+
+- 实装：`PredictionOutcome` / `PredictionMarket` / `PredictionMarketList` / `PredictionQuote`
+- HTTP：`/v1/prediction/markets`、`/v1/prediction/markets/{id}`、`/v1/prediction/quote`（events 为 markets 别名）
+- MCP：`search_prediction_markets` / `get_prediction_market` / `get_prediction_quote`
+- **不**经 `/v1/quotes` 或 `/v1/bars`；POLY equity watch/query 仍 unsupported

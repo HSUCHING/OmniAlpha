@@ -5,7 +5,7 @@ from typing import Any, Literal
 
 CapabilityStatus = Literal["implemented", "partial", "unsupported"]
 
-CAPABILITIES = ("watch", "query", "analyze", "screen")
+CAPABILITIES = ("watch", "query", "analyze", "screen", "prediction")
 MARKETS = ("CN", "US", "CRYPTO", "POLY")
 
 
@@ -17,30 +17,38 @@ def get_capabilities_matrix() -> dict[str, Any]:
             "query": {"status": "implemented", "source": "postgres", "notes": "instruments"},
             "analyze": {"status": "unsupported"},
             "screen": {"status": "unsupported"},
+            "prediction": {"status": "unsupported"},
         },
         "US": {
             "watch": {"status": "implemented", "source": "yfinance", "notes": "quotes+bars"},
             "query": {"status": "implemented", "source": "postgres", "notes": "instruments"},
             "analyze": {"status": "unsupported"},
             "screen": {"status": "unsupported"},
+            "prediction": {"status": "unsupported"},
         },
         "CRYPTO": {
             "watch": {"status": "implemented", "source": "okx", "notes": "quotes+bars via OKX public REST (httpx)"},
             "query": {"status": "implemented", "source": "postgres", "notes": "instruments"},
             "analyze": {"status": "unsupported"},
             "screen": {"status": "unsupported"},
+            "prediction": {"status": "unsupported"},
         },
         "POLY": {
             "watch": {
                 "status": "unsupported",
-                "notes": "prediction separate / not phase-1; do not use equity Quote/Bar",
+                "notes": "POLY is prediction-only; do not use equity Quote/Bar path",
             },
             "query": {
                 "status": "unsupported",
-                "notes": "instruments seed may exist in PG; market product query unsupported in phase-1",
+                "notes": "instruments seed may exist in PG; market product query unsupported",
             },
             "analyze": {"status": "unsupported"},
             "screen": {"status": "unsupported"},
+            "prediction": {
+                "status": "implemented",
+                "source": "polymarket-gamma",
+                "notes": "/v1/prediction/* + MCP Prediction* tools; not via /v1/quotes|/v1/bars",
+            },
         },
     }
     flat = []
@@ -60,7 +68,7 @@ def get_capabilities_matrix() -> dict[str, Any]:
         "CN": {"instruments": True, "quotes": True, "bars": True, "prediction": False},
         "US": {"instruments": True, "quotes": True, "bars": True, "prediction": False},
         "CRYPTO": {"instruments": True, "quotes": True, "bars": True, "prediction": False},
-        "POLY": {"instruments": True, "quotes": False, "bars": False, "prediction": False},
+        "POLY": {"instruments": True, "quotes": False, "bars": False, "prediction": True},
     }
     return {
         "version": "0.2.0",
@@ -72,7 +80,7 @@ def get_capabilities_matrix() -> dict[str, Any]:
         "detail": detail,
         "notes": [
             "analyze and screen are unsupported; HTTP routes return 501",
-            "POLY watch/query/prediction unsupported in phase-1 (prediction path independent)",
+            "POLY prediction implemented via /v1/prediction/* (source=polymarket-gamma); equity watch/query unsupported",
             "CRYPTO watch source is okx via httpx (not ccxt)",
         ],
     }

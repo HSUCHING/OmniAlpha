@@ -58,7 +58,7 @@ OmniAlpha/
 │   ├── marketdata/       # 报价 / K线
 │   ├── analytics/        # 空位
 │   ├── screener/         # 空位
-│   └── prediction/       # 空位
+│   └── prediction/       # POLY via Gamma (/v1/prediction/*)
 ├── adapters/             # 按源适配
 │   └── cn_watch/         # 腾讯 A 股看盘（已实现）
 ├── contracts/            # Schema + openapi.yaml
@@ -104,7 +104,7 @@ curl -sS -H "X-API-Key: $KEY" \
 ```
 
 - Swagger：`$BASE/docs`  
-- MCP：`$BASE/mcp`（`search_instruments` / `get_quotes` / `get_bars` / `get_capabilities`；prediction 工具已 F3 移除）
+- MCP：`$BASE/mcp`（`search_instruments` / `get_quotes` / `get_bars` / `get_capabilities` / `search_prediction_markets` / `get_prediction_market` / `get_prediction_quote`）
 - Scalar：`http://127.0.0.1:8701/`（OpenAPI 只读；试调加 `X-API-Key: dev-key`）
 
 公网（若已配 Cloudflare Tunnel）：
@@ -134,6 +134,18 @@ POLY:{market_id}
 
 未知前缀 → **422**；缺 API Key（若已配置）→ **401**。  
 规范化字段：`as_of`（UTC）、`source`、`stale`。
+
+### Prediction（POLY）
+
+POLY 是**预测市场**，不是股票行情。请走独立路径，**不要**用 `/v1/quotes` / `/v1/bars`。
+
+```bash
+curl -sS -H "X-API-Key: $KEY" "$BASE/v1/prediction/markets?limit=2"
+curl -sS -H "X-API-Key: $KEY" "$BASE/v1/prediction/markets/{id}"
+curl -sS -H "X-API-Key: $KEY" "$BASE/v1/prediction/quote?market_id={id}"
+```
+
+返回 `PredictionMarket` / `PredictionQuote`（`outcomes[].price` 为 0–1 概率）。数据源：`polymarket-gamma`。
 
 ---
 

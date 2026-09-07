@@ -22,6 +22,9 @@ from contracts.schema import (
     CapabilityFlags,
     HealthResponse,
     InstrumentList,
+    PredictionMarket,
+    PredictionMarketList,
+    PredictionQuote,
     QuoteList,
     ReadyResponse,
 )
@@ -30,6 +33,7 @@ from domain.health import check_ready
 from domain.id import parse_symbol, parse_symbols
 from domain.marketdata import get_bars, get_quotes
 from domain.meta import get_capabilities_matrix
+from domain import prediction as prediction_svc
 from domain.reference import list_instruments, search_instruments
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(name)s %(message)s")
@@ -203,43 +207,52 @@ def health_ready():
 
 
 def _capabilities() -> CapabilitiesResponse:
-    """Build API response from truthful domain matrix (POLY/prediction not advertised)."""
+    """Build API response from truthful domain matrix (POLY prediction via Gamma)."""
     m = get_capabilities_matrix()
     markets: dict[str, CapabilityFlags] = {}
     provider_by_market = {
         "CN": "tencent",
         "US": "yfinance",
         "CRYPTO": "okx",
-        "POLY": None,
+        "POLY": "polymarket-gamma",
     }
     notes_by_market = {
         "CN": "A-share quotes/bars via Tencent",
         "US": "US equities quotes/bars via Yahoo Finance",
         "CRYPTO": "Spot quotes/bars via OKX public REST (httpx)",
-        "POLY": "prediction separate / not phase-1; watch/query unsupported",
+        "POLY": "prediction via /v1/prediction/* (Gamma); equity watch/query unsupported",
     }
     for mkt, caps in m["matrix"].items():
         watch = caps["watch"]["status"] == "implemented"
         query = caps["query"]["status"] == "implemented"
+        prediction = caps.get("prediction", {}).get("status") == "implemented"
+        # Prefer market-specific provider when any capability is live
+        live = watch or query or prediction
         markets[mkt] = CapabilityFlags(
             watch=watch,
             query=query,
             analyze=False,
             screen=False,
-            prediction=False,
-            provider=provider_by_market.get(mkt) if (watch or query) else None,
+            prediction=prediction,
+            provider=provider_by_market.get(mkt) if live else None,
             notes=notes_by_market.get(mkt),
         )
     matrix = []
     for mkt, flags in markets.items():
         for cap in ("watch", "query", "analyze", "screen", "prediction"):
             implemented = bool(getattr(flags, cap))
+            prov = None
+            if implemented:
+                if cap == "prediction" and mkt == "POLY":
+                    prov = "polymarket-gamma"
+                else:
+                    prov = flags.provider
             matrix.append(
                 {
                     "market": mkt,
                     "capability": cap,
                     "implemented": implemented,
-                    "provider": flags.provider if implemented else None,
+                    "provider": prov,
                 }
             )
     return CapabilitiesResponse(phase="phase1", markets=markets, matrix=matrix)
@@ -315,26 +328,93 @@ def v1_screener_run(market: Optional[str] = Query(None)):
     return _phase1_not_implemented("screen", "screener not implemented in phase-1")
 
 
-@app.get("/v1/prediction/events", tags=["prediction"], dependencies=[Depends(require_api_key)])
-def v1_prediction_events():
-    return _phase1_not_implemented("prediction", "prediction not implemented in phase-1")
+def _prediction_invalid_id(message: str):
+    return JSONResponse(
+        status_code=422,
+        content=_api_error("invalid_id", message, market="POLY", capability="prediction"),
+    )
 
 
-@app.get("/v1/prediction/markets", tags=["prediction"], dependencies=[Depends(require_api_key)])
-def v1_prediction_markets():
-    return _phase1_not_implemented("prediction", "prediction not implemented in phase-1")
+def _prediction_not_found(message: str):
+    return JSONResponse(
+        status_code=404,
+        content=_api_error("not_found", message, market="POLY", capability="prediction"),
+    )
 
 
-@app.get("/v1/prediction/markets/{market_id}", tags=["prediction"], dependencies=[Depends(require_api_key)])
+@app.get(
+    "/v1/prediction/events",
+    response_model=PredictionMarketList,
+    tags=["prediction"],
+    dependencies=[Depends(require_api_key)],
+)
+def v1_prediction_events(
+    limit: int = Query(10, ge=1, le=100),
+    q: Optional[str] = Query(None, description="Filter by question/id substring"),
+    active: bool = Query(True),
+):
+    raw = prediction_svc.list_events(limit=limit, active=active, q=q)
+    return PredictionMarketList(
+        items=[PredictionMarket.model_validate(x) for x in (raw.get("items") or [])],
+        total=int(raw.get("total") or 0),
+        warnings=list(raw.get("warnings") or []),
+    )
+
+
+@app.get(
+    "/v1/prediction/markets",
+    response_model=PredictionMarketList,
+    tags=["prediction"],
+    dependencies=[Depends(require_api_key)],
+)
+def v1_prediction_markets(
+    limit: int = Query(20, ge=1, le=100),
+    q: Optional[str] = Query(None, description="Filter by question/id substring"),
+):
+    raw = prediction_svc.list_markets(limit=limit, q=q)
+    return PredictionMarketList(
+        items=[PredictionMarket.model_validate(x) for x in (raw.get("items") or [])],
+        total=int(raw.get("total") or 0),
+        warnings=list(raw.get("warnings") or []),
+    )
+
+
+@app.get(
+    "/v1/prediction/markets/{market_id}",
+    response_model=PredictionMarket,
+    tags=["prediction"],
+    dependencies=[Depends(require_api_key)],
+)
 def v1_prediction_market(market_id: str):
-    _ = market_id
-    return _phase1_not_implemented("prediction", "prediction not implemented in phase-1")
+    mid = (market_id or "").strip()
+    if not mid:
+        return _prediction_invalid_id("empty market_id")
+    try:
+        item = prediction_svc.get_market(mid)
+    except ValueError as e:
+        return _prediction_invalid_id(str(e))
+    except LookupError as e:
+        return _prediction_not_found(str(e))
+    return PredictionMarket.model_validate(item)
 
 
-@app.get("/v1/prediction/quote", tags=["prediction"], dependencies=[Depends(require_api_key)])
-def v1_prediction_quote(market_id: Optional[str] = Query(None)):
-    _ = market_id
-    return _phase1_not_implemented("prediction", "prediction not implemented in phase-1")
+@app.get(
+    "/v1/prediction/quote",
+    response_model=PredictionQuote,
+    tags=["prediction"],
+    dependencies=[Depends(require_api_key)],
+)
+def v1_prediction_quote(market_id: Optional[str] = Query(None, description="Polymarket market id or POLY:{id}")):
+    mid = (market_id or "").strip()
+    if not mid:
+        return _prediction_invalid_id("empty market_id")
+    try:
+        quote = prediction_svc.get_quote(mid)
+    except ValueError as e:
+        return _prediction_invalid_id(str(e))
+    except LookupError as e:
+        return _prediction_not_found(str(e))
+    return PredictionQuote.model_validate(quote)
 
 
 if mcp_app is not None:
@@ -349,6 +429,6 @@ else:
                 "status": "stub",
                 "service": "omnialpha",
                 "detail": "fastmcp not installed; install fastmcp for real MCP tools",
-                "tools": ["search_instruments", "get_quotes", "get_bars", "get_capabilities"],
+                "tools": ["search_instruments", "get_quotes", "get_bars", "get_capabilities", "search_prediction_markets", "get_prediction_market", "get_prediction_quote"],
             }
         )

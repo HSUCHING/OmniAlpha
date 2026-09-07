@@ -45,6 +45,7 @@ def list_markets(limit: int = 20, q: Optional[str] = None, timeout: float = 12.0
                 "active": m.get("active"),
                 "closed": m.get("closed"),
                 "outcome_prices": m.get("outcomePrices") or m.get("outcome_prices"),
+                "outcomes_raw": m.get("outcomes"),
                 "volume": m.get("volume") or m.get("volumeNum"),
                 "liquidity": m.get("liquidity") or m.get("liquidityNum"),
                 "end_date": m.get("endDate") or m.get("end_date_iso"),
@@ -65,8 +66,8 @@ def get_market(market_id: str, timeout: float = 12.0) -> Optional[dict[str, Any]
     url = f"{GAMMA_BASE}/markets/{mid}"
     with httpx.Client(timeout=timeout, headers={"User-Agent": "omnialpha/0.1"}) as client:
         r = client.get(url)
-        if r.status_code == 404:
-            # try slug search via list
+        if r.status_code in (404, 422):
+            # try slug / id search via list
             found = list_markets(limit=50, q=mid)
             for item in found:
                 if item.get("id") == mid or item.get("slug") == mid:
@@ -87,6 +88,7 @@ def get_market(market_id: str, timeout: float = 12.0) -> Optional[dict[str, Any]
         "active": m.get("active"),
         "closed": m.get("closed"),
         "outcome_prices": m.get("outcomePrices") or m.get("outcome_prices"),
+        "outcomes_raw": m.get("outcomes"),
         "volume": m.get("volume") or m.get("volumeNum"),
         "liquidity": m.get("liquidity") or m.get("liquidityNum"),
         "end_date": m.get("endDate") or m.get("end_date_iso"),

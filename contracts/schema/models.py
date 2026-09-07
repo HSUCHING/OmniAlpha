@@ -144,3 +144,43 @@ ReadyCheck = ReadyResponse
 
 SERVICE_NAME = "omnialpha"
 SERVICE_VERSION = "0.2.0"
+
+
+# --- Prediction (POLY) — separate from equity Quote/Bar ---
+
+
+class PredictionOutcome(BaseModel):
+    """Single outcome probability in [0, 1]."""
+
+    name: str
+    price: float = Field(ge=0.0, le=1.0, description="Implied probability in [0, 1]")
+
+
+class PredictionMarket(EnvelopeMixin):
+    id: str
+    symbol: str = Field(description="Canonical POLY:{id}")
+    question: Optional[str] = None
+    slug: Optional[str] = None
+    active: Optional[bool] = None
+    closed: Optional[bool] = None
+    outcomes: list[PredictionOutcome] = Field(default_factory=list)
+    volume: Optional[float] = None
+    liquidity: Optional[float] = None
+    end_date: Optional[str] = None
+
+
+class PredictionMarketList(BaseModel):
+    items: list[PredictionMarket]
+    total: int
+    warnings: list[str] = Field(default_factory=list)
+
+
+class PredictionQuote(EnvelopeMixin):
+    """Prediction probability quote — not equity Quote."""
+
+    market_id: str
+    symbol: str
+    question: Optional[str] = None
+    outcomes: list[PredictionOutcome] = Field(default_factory=list)
+    yes_price: Optional[float] = Field(default=None, ge=0.0, le=1.0)
+    no_price: Optional[float] = Field(default=None, ge=0.0, le=1.0)

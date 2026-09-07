@@ -146,45 +146,117 @@ paths:
           description: Not implemented in phase-1
   /v1/prediction/events:
     get:
-      summary: List prediction events (phase-1 stub)
+      summary: List prediction events (alias of markets)
+      description: Thin alias of /v1/prediction/markets for Polymarket (POLY). Not equity Quote/Bar.
+      parameters:
+        - name: limit
+          in: query
+          schema: { type: integer, default: 10, minimum: 1, maximum: 100 }
+        - name: q
+          in: query
+          schema: { type: string }
+          description: Filter by question/id substring
+        - name: active
+          in: query
+          schema: { type: boolean, default: true }
       security:
         - ApiKeyAuth: []
       responses:
-        "501":
-          description: Not implemented in phase-1 (Prediction* schema not closed)
+        "200":
+          description: PredictionMarketList
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PredictionMarketList"
+        "401":
+          description: Missing or invalid API key
   /v1/prediction/markets:
     get:
-      summary: List prediction markets (phase-1 stub)
+      summary: List prediction markets (Polymarket Gamma)
+      description: |
+        POLY prediction markets via Gamma. Separate from equity /v1/quotes and /v1/bars.
+      parameters:
+        - name: limit
+          in: query
+          schema: { type: integer, default: 20, minimum: 1, maximum: 100 }
+        - name: q
+          in: query
+          schema: { type: string }
+          description: Filter by question/id substring
       security:
         - ApiKeyAuth: []
       responses:
-        "501":
-          description: Not implemented in phase-1
+        "200":
+          description: PredictionMarketList
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PredictionMarketList"
+        "401":
+          description: Missing or invalid API key
   /v1/prediction/markets/{market_id}:
     get:
-      summary: Get prediction market by id (phase-1 stub)
+      summary: Get prediction market by id
       parameters:
         - name: market_id
           in: path
           required: true
           schema: { type: string }
+          description: Polymarket market id or POLY:{id}
       security:
         - ApiKeyAuth: []
       responses:
-        "501":
-          description: Not implemented in phase-1
+        "200":
+          description: PredictionMarket
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PredictionMarket"
+        "404":
+          description: Market not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+        "422":
+          description: Empty or invalid market_id
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
   /v1/prediction/quote:
     get:
-      summary: Prediction market quote by id (phase-1 stub)
+      summary: Prediction market probability quote
+      description: |
+        Returns PredictionQuote (outcomes / yes_price / no_price).
+        Do NOT use equity /v1/quotes for POLY.
       parameters:
         - name: market_id
           in: query
+          required: true
           schema: { type: string }
+          description: Polymarket market id or POLY:{id}
       security:
         - ApiKeyAuth: []
       responses:
-        "501":
-          description: Not implemented in phase-1
+        "200":
+          description: PredictionQuote
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PredictionQuote"
+        "404":
+          description: Market not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+        "422":
+          description: Empty or invalid market_id
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
 components:
   securitySchemes:
     ApiKeyAuth:
@@ -213,4 +285,63 @@ components:
           enum: [CN, US, CRYPTO, POLY]
         capability:
           type: string
+
+    PredictionOutcome:
+      type: object
+      required: [name, price]
+      properties:
+        name: { type: string }
+        price:
+          type: number
+          minimum: 0
+          maximum: 1
+          description: Implied probability in [0, 1]
+    PredictionMarket:
+      type: object
+      required: [id, symbol, as_of, source]
+      properties:
+        id: { type: string }
+        symbol: { type: string, description: "POLY:{id}" }
+        question: { type: string, nullable: true }
+        slug: { type: string, nullable: true }
+        active: { type: boolean, nullable: true }
+        closed: { type: boolean, nullable: true }
+        outcomes:
+          type: array
+          items:
+            $ref: "#/components/schemas/PredictionOutcome"
+        volume: { type: number, nullable: true }
+        liquidity: { type: number, nullable: true }
+        end_date: { type: string, nullable: true }
+        as_of: { type: string }
+        source: { type: string }
+        stale: { type: boolean, default: false }
+    PredictionMarketList:
+      type: object
+      required: [items, total]
+      properties:
+        items:
+          type: array
+          items:
+            $ref: "#/components/schemas/PredictionMarket"
+        total: { type: integer }
+        warnings:
+          type: array
+          items: { type: string }
+    PredictionQuote:
+      type: object
+      required: [market_id, symbol, as_of, source]
+      properties:
+        market_id: { type: string }
+        symbol: { type: string }
+        question: { type: string, nullable: true }
+        outcomes:
+          type: array
+          items:
+            $ref: "#/components/schemas/PredictionOutcome"
+        yes_price: { type: number, nullable: true, minimum: 0, maximum: 1 }
+        no_price: { type: number, nullable: true, minimum: 0, maximum: 1 }
+        as_of: { type: string }
+        source: { type: string }
+        stale: { type: boolean, default: false }
 
